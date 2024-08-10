@@ -52,26 +52,6 @@ static void glfw_atexit( void )
 }
 
 
-//========================================================================
-// Initialize GLFW thread package
-//========================================================================
-
-static void _glfwInitThreads( void )
-{
-    // Initialize critical section handle
-    (void) pthread_mutex_init( &_glfwThrd.CriticalSection, NULL );
-
-    // The first thread (the main thread) has ID 0
-    _glfwThrd.NextID = 0;
-
-    // Fill out information about the main thread (this thread)
-    _glfwThrd.First.ID       = _glfwThrd.NextID ++;
-    _glfwThrd.First.Function = NULL;
-    _glfwThrd.First.PosixID  = pthread_self();
-    _glfwThrd.First.Previous = NULL;
-    _glfwThrd.First.Next     = NULL;
-}
-
 #define NO_BUNDLE_MESSAGE \
     "Working in unbundled mode.  " \
     "You should build a .app wrapper for your Mac OS X applications.\n"
@@ -155,12 +135,15 @@ int _glfwPlatformInit( void )
         return GL_FALSE;
     }
 
-    _glfwPlatformGetDesktopMode( &_glfwLibrary.desktopMode );
+    _glfwDesktopVideoMode = CGDisplayCurrentMode( kCGDirectMainDisplay );
+    if( _glfwDesktopVideoMode == NULL )
+    {
+        fprintf( stderr, "glfwInit failing because it kind find the desktop display mode\n" );
+        return GL_FALSE;
+    }
 
     // Install atexit routine
     atexit( glfw_atexit );
-
-    _glfwInitThreads();
 
     _glfwChangeToResourcesDirectory();
 
@@ -183,7 +166,7 @@ int _glfwPlatformInit( void )
 }
 
 //========================================================================
-// Close window and kill all threads
+// Close window
 //========================================================================
 
 int _glfwPlatformTerminate( void )

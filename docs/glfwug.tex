@@ -42,7 +42,7 @@
 This document is a users guide for the \GLFW\ API that gives a practical
 introduction to using \GLFW . For a more detailed description of the
 \GLFW\ API you should refer to the \textit{GLFW Reference Manual}.
-\vspace{5cm}
+\vspace{10cm}
 
 \large
 Trademarks
@@ -93,27 +93,27 @@ to remedy this by providing the following functionality:
 \begin{itemize}
 \item Opening and managing an \OpenGL\ window.
 \item Keyboard, mouse and joystick input.
-\item High precision time input.
-\item Multi-threading support.
+\item A high precision timer.
 \item Support for querying and using \OpenGL\ extensions.
-\item Rudimentary image file loading support.
 \end{itemize}
 \vspace{18pt}
 
 All this functionality is implemented as a set of easy-to-use functions,
 which makes it possible to write an \OpenGL\ application framework in just a
-few lines of code. The \GLFW\ API is operating system and platform independent,
-making it very simple to port \GLFW\ based \OpenGL\ applications between the
-supported platforms.
+few lines of code. The \GLFW\ API is completely operating system and
+platform independent, which makes it very simple to port \GLFW\ based \OpenGL\
+applications to a variety of platforms.
 
 Currently supported platforms are:
 \begin{itemize}
-\item Microsoft Windows\textsuperscript{\textregistered}
+\item Microsoft Windows\textsuperscript{\textregistered} 95/98/ME/NT/2000/XP/.NET Server.
 \item Unix\textsuperscript{\textregistered} or Unix­-like systems running the
-X Window System\texttrademark with GLX version 1.3 or later
+X Window System\texttrademark, e.g. Linux\textsuperscript{\textregistered},
+IRIX\textsuperscript{\textregistered}, FreeBSD\textsuperscript{\textregistered},
+Solaris\texttrademark, QNX\textsuperscript{\textregistered} and
+Mac OS\textsuperscript{\textregistered} X.
+\item Mac OS\textsuperscript{\textregistered} X (Carbon)\footnote{Support for joysticks missing at the time of writing.}
 \end{itemize}
-
-There is also deprecated support for Mac OS X versions 10.3 and 10.4, using the Carbon API.
 
 
 %-------------------------------------------------------------------------
@@ -127,31 +127,10 @@ read some user keyboard input.
 
 
 %-------------------------------------------------------------------------
-\section{Including the GLFW header}
-The usual way of including the \GLFW\ header is:
-\begin{lstlisting}
-#include <GL/glfw.h>
-\end{lstlisting}
-
-This header defines all the constants, types and function prototypes of the
-\GLFW\ API.  It also by default includes the \OpenGL\ and GLU header files
-provided by your development environment and defines all the necessary constants
-and types that are necessary for these headers to work on that particular
-platform.
-
-By default, the regular \textbf{gl.h} header is included. If you wish to include
-the draft \textbf{gl3.h} header instead, define \textbf{GLFW\_INCLUDE\_GL3}
-before the inclusion of the GLFW header.
-
-Also by default, the \textbf{glu.h} header is included.  If you wish to avoid this,
-define \textbf{GLFW\_NO\_GLU} before the inclusion of the GLFW header.
-
-
-%-------------------------------------------------------------------------
 \section{Initializing GLFW}
 Before using any of the \GLFW\ functions, it is necessary to call
-\textbf{glfwInit}. It initializes the parts of \GLFW\ that are not dependent on
-a window, such as threading, timer and joystick input. The C syntax is:
+\textbf{glfwInit}. It initializes internal working variables that are used
+by other \GLFW\ functions. The C syntax is:
 
 \begin{lstlisting}
 int glfwInit( void )
@@ -161,28 +140,31 @@ int glfwInit( void )
 GL\_FALSE if it failed.
 
 When your application is done using \GLFW , typically at the very end of
-the program, you should call \textbf{glfwTerminate}.  The C syntax is:
+the program, you should call \textbf{glfwTerminate}, which makes a clean
+up and places \GLFW\ in a non-initialized state (i.e. it is necessary to
+call \textbf{glfwInit} again before using any \GLFW\ functions). The C
+syntax is:
 
 \begin{lstlisting}
 void glfwTerminate( void )
 \end{lstlisting}
 
-This releases any resources allocated by GLFW, closes the window if it is open
-and kills any secondary threads created by \GLFW\.  After this call, you must
-call \textbf{glfwInit} again before using any \GLFW\ functions).
+Among other things, \textbf{glfwTerminate} closes the \OpenGL\ window
+unless it was closed manually.
+
 
 %-------------------------------------------------------------------------
 \section{Opening An OpenGL Window}
-Opening an \OpenGL\ window is done with the \textbf{glfwOpenWindow} function.
-The function takes nine arguments, which are used to describe the following
-properties of the requested window:
+Opening an \OpenGL\ window is done with the function
+\textbf{glfwOpenWindow}. The function takes nine arguments, which are used
+to describe the following properties of the window to open:
 
 \begin{itemize}
 \item Window dimensions (width and height) in pixels.
-\item Color and alpha buffer bit depth.
-\item Depth buffer (Z-buffer) bit depth.
-\item Stencil buffer bit depth.
-\item Whether to use fullscreen or windowed mode.
+\item Color and alpha buffer depth.
+\item Depth buffer (Z-buffer) depth.
+\item Stencil buffer depth.
+\item Fullscreen or windowed mode.
 \end{itemize}
 
 The C language syntax for \textbf{glfwOpenWindow} is:
@@ -204,18 +186,18 @@ zero, \GLFW\ will use a window resolution of 640x480. If
 \textit{depthbits} is zero, the opened window may not have a depth buffer.
 
 The \textit{mode} argument is used to specify if the window is to be a
-fullscreen window or a regular window.
+s.c. fullscreen window, or a regular window.
 
 If \textit{mode} is GLFW\_FULLSCREEN, the window will cover the entire
-screen and no window border or decorations will be visible. If possible, the
-video mode will be changed to the mode that closest matches the \textit{width},
-\textit{height}, \textit{redbits}, \textit{greenbits}, \textit{bluebits} and
-\textit{alphabits} arguments. Furthermore, the mouse pointer will be hidden,
-and screensavers are prohibited. This is usually the best mode for games and
-demos.
+screen and no window borders will be visible. If possible, the video mode
+will be changed to the mode that closest matches the \textit{width},
+\textit{height}, \textit{redbits}, \textit{greenbits}, \textit{bluebits}
+and \textit{alphabits} arguments. Furthermore, the mouse pointer will be
+hidden, and screensavers are prohibited. This is usually the best mode for
+games and demos.
 
-If \textit{mode} is GLFW\_WINDOW, the window will be opened as a normal,
-decorated window on the desktop. The mouse pointer will not be hidden and
+If \textit{mode} is GLFW\_WINDOW, the window will be opened as a normal
+window on the desktop. The mouse pointer will not be hidden, and
 screensavers are allowed to be activated.
 
 To close the window, you can either use \textbf{glfwTerminate}, as
@@ -225,10 +207,6 @@ described earlier, or you can use the more explicit approach by calling
 \begin{lstlisting}
 void glfwCloseWindow( void )
 \end{lstlisting}
-
-Note that you do not need to call \textbf{glfwTerminate} and \textbf{glfwInit}
-before opening a new window after having closed the current one using
-\textbf{glfwCloseWindow}.
 
 
 %-------------------------------------------------------------------------
@@ -247,8 +225,8 @@ It queries the current status of individual keyboard keys. The argument
 uppercase printable ISO 8859-1 (Latin 1) character (e.g. `A', `3' or `.'),
 or a special key identifier (see the \textit{GLFW Reference Manual} for a
 list of special key identifiers). \textbf{glfwGetKey} returns GLFW\_PRESS
-if the key is currently held down, or GLFW\_RELEASE if the key is not being
-held down. For example:
+(or 1) if the key is currently held down, or GLFW\_RELEASE (or 0) if the
+key is not being held down. For example:
 
 \begin{lstlisting}
 A_pressed = glfwGetKey( 'A' );
@@ -273,27 +251,25 @@ second in order for \GLFW\ to maintain an up to date input state.
 %-------------------------------------------------------------------------
 \section{Putting It Together: A Minimal GLFW Application}
 Now that you know how to initialize \GLFW , open a window and poll for
-keyboard input, let us exemplify this with a simple \OpenGL\ program:
+keyboard input, let us exemplify this with a simple \OpenGL\ program. In
+the following example some error-checking has been omitted for the sake of
+brevity:
 
 \begin{lstlisting}
 #include <GL/glfw.h>
-#include <stdlib.h>
 
 int main( void )
 {
     int running = GL_TRUE;
 
     // Initialize GLFW
-    if( !glfwInit() )
-    {
-        exit( EXIT_FAILURE );
-    }
+    glfwInit();
 
     // Open an OpenGL window
     if( !glfwOpenWindow( 300,300, 0,0,0,0,0,0, GLFW_WINDOW ) )
     {
         glfwTerminate();
-        exit( EXIT_FAILURE );
+        return 0;
     }
 
     // Main loop
@@ -314,7 +290,7 @@ int main( void )
     glfwTerminate();
 
     // Exit program
-    exit( EXIT_SUCCESS );
+    return 0;
 }
 \end{lstlisting}
 
@@ -329,7 +305,7 @@ is done in this example is to clear the window.
 \chapter{Window Operations}
 \thispagestyle{fancy}
 In this chapter, you will learn more about window related \GLFW\
-functionality, including setting and getting window properties, buffer
+functionality, including: setting and getting window properties, buffer
 swap control and video mode querying.
 
 
@@ -337,9 +313,9 @@ swap control and video mode querying.
 \section{Setting Window Properties}
 In the previous chapter the \textbf{glfwOpenWindow} function was
 described, which specifies the sizes of the color, alpha, depth and
-stencil buffers. It is also possible to request a specific minimum OpenGL
-version, multisampling anti-aliasing, an accumulation buffer, stereo
-rendering and more by using the \textbf{glfwOpenWindowHint} function:
+stencil buffers. It is also possible to request an accumulator buffer,
+auxiliary buffers and stereo rendering by using the
+\textbf{glfwOpenWindowHint} function:
 
 \begin{lstlisting}
 void glfwOpenWindowHint( int target, int hint )
@@ -355,21 +331,20 @@ specified target.
 \begin{tabular}{|l|l|p{7.0cm}|} \hline \raggedright
 \textbf{Name}            & \textbf{Default} & \textbf{Description} \\ \hline
 GLFW\_REFRESH\_RATE      & 0                & Vertical monitor refresh rate in Hz (only used for fullscreen windows). Zero means system default.\\ \hline
-GLFW\_ACCUM\_RED\_BITS   & 0                & Number of bits for the red channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_GREEN\_BITS & 0                & Number of bits for the green channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_BLUE\_BITS  & 0                & Number of bits for the blue channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_ALPHA\_BITS & 0                & Number of bits for the alpha channel of the accumulation buffer.\\ \hline
+GLFW\_ACCUM\_RED\_BITS   & 0                & Number of bits for the red channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_GREEN\_BITS & 0                & Number of bits for the green channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_BLUE\_BITS  & 0                & Number of bits for the blue channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_ALPHA\_BITS & 0                & Number of bits for the alpha channel of the accumulator buffer.\\ \hline
 GLFW\_AUX\_BUFFERS       & 0                & Number of auxiliary buffers.\\ \hline
 GLFW\_STEREO             & GL\_FALSE        & Specify if stereo rendering should be supported (can be GL\_TRUE or GL\_FALSE).\\ \hline
-GLFW\_WINDOW\_NO\_RESIZE & GL\_FALSE        & Specify whether the window can be resized by the user (not used for fullscreen windows).\\ \hline
+GLFW\_WINDOW\_NO\_RESIZE & GL\_FALSE        & Specify whether the window can be resized (not used for fullscreen windows).\\ \hline
 GLFW\_FSAA\_SAMPLES      & 0                & Number of samples to use for the multisampling buffer. Zero disables multisampling.\\ \hline
-GLFW\_OPENGL\_VERSION\_MAJOR & 1	        & Major number of the desired minimum OpenGL version.\\ \hline
-GLFW\_OPENGL\_VERSION\_MINOR & 1	        & Minor number of the desired minimum OpenGL version.\\ \hline
-GLFW\_OPENGL\_FORWARD\_COMPAT & GL\_FALSE   & Specify whether the OpenGL context should be forward-compatible (i.e. disallow legacy functionality).
-                                              This should only be used when requesting OpenGL version 3.0 or above.\\ \hline
-GLFW\_OPENGL\_DEBUG\_CONTEXT & GL\_FALSE    & Specify whether a debug context should be created.\\ \hline
-GLFW\_OPENGL\_PROFILE    & 0                & The OpenGL profile the context should implement, or zero to let the system choose.
-                                              Available profiles are GLFW\_OPENGL\_CORE\_PROFILE and GLFW\_OPENGL\_COMPAT\_PROFILE.\\ \hline
+GLFW\_OPENGL\_VERSION\_MAJOR & 0	    & Major number of the desired OpenGL version.
+                                              The default requests the highest OpenGL version equal to or lower than 2.1.\\ \hline
+GLFW\_OPENGL\_VERSION\_MINOR & 0	    & Minor number of the desired OpenGL version.
+                                              The default requests the highest OpenGL version equal to or lower than 2.1.\\ \hline
+GLFW\_OPENGL\_FORWARD\_COMPAT & GL\_FALSE   & Specify whether the OpenGL context should be forward compatible (i.e. disallow legacy functionality).
+                                              This hint is ignored for OpenGL version 2.1 and below.\\ \hline
 \end{tabular}
 \end{center}
 \caption{Targets for \textbf{glfwOpenWindowHint}}
@@ -381,7 +356,7 @@ For a hint to have any effect, the \textbf{glfwOpenWindowHint} function
 must be called before opening the window with the \textbf{glfwOpenWindow}
 function.
 
-To request an accumulation buffer, set the GLFW\_ACCUM\_x\_BITS targets to
+To request an accumulator buffer, set the GLFW\_ACCUM\_x\_BITS targets to
 values greater than zero (usually eight or sixteen bits per component).
 To request auxiliary buffers, set the GLFW\_AUX\_BUFFERS target to a value
 greater than zero. To request a stereo rendering capable window, set the
@@ -394,21 +369,10 @@ fulfil the request, \GLFW\ will degrade gracefully and disable FSAA if necessary
 The GLFW\_REFRESH\_RATE target should be used with caution, since it may
 result in suboptimal operation, or even a blank or damaged screen.
 
-If you want to create a forward-compatible \OpenGL\ context, set the
-GLFW\_OPENGL\_FORWARD\_COMPAT hint to GL\_TRUE.  Note that such contexts are
-only available for \OpenGL\ version 3.0 and above, so you will need to specify
-a valid minimum version using the GLFW\_OPENGL\_VERSION\_MAJOR and
-GLFW\_OPENGL\_VERSION\_MINOR hints.
-
-If you want to create a context using the core profile as available in \OpenGL\
-version 3.2 and above, set the GLFW\_OPENGL\_PROFILE hint accordingly.  Note that
-as above you have to set a valid minimum version for this to work.
-
-Note that versions of Mac OS X before 10.7 does not support \OpenGL\ 3.0 or
-later, and that at the time of this release, Mac OS X 10.7 only supports 
-forward-compatible \OpenGL\ 3.2 core profile contexts.  Due to the way default
-values work in \GLFW\, you do not need to specify either GLFW\_FORWARD\_COMPAT
-or GLFW\_OPENGL\_PROFILE for this to work.
+If you want to create a context with OpenGL version 3.0 or above you have to
+set the GLFW\_OPENGL\_VERSION\_MAJOR and GLFW\_OPENGL\_VERSION\_MINOR hints
+accordingly. If you don't do this, the highest OpenGL version available for a
+context is 2.1 or lower.
 
 Besides the parameters that are given with the \textbf{glfwOpenWindow} and
 \textbf{glfwOpenWindowHint} functions, a few more properties of a window
@@ -424,7 +388,7 @@ void glfwSetWindowTitle( const char *title )
 
 \textit{title} is a null terminated ISO~8859-1 (8-bit Latin~1) string that
 will be used as the window title. It will also be used as the application
-name (for instance in the application list when using \texttt{Alt+Tab}
+name (for instance in the application list when using \texttt{ALT+TAB}
 under Windows, or as the icon name when the window is iconified under
 the X Window System). The default window name is ``GLFW Window'', which
 will be used unless \textbf{glfwSetWindowTitle} is called after the window
@@ -480,19 +444,18 @@ GLFW\_ALPHA\_BITS        & Number of bits for the alpha buffer.\\ \hline
 GLFW\_DEPTH\_BITS        & Number of bits for the depth buffer.\\ \hline
 GLFW\_STENCIL\_BITS      & Number of bits for the stencil buffer.\\ \hline
 GLFW\_REFRESH\_RATE      & Vertical monitor refresh rate in Hz. Zero indicates an unknown or a default refresh rate.\\ \hline
-GLFW\_ACCUM\_RED\_BITS   & Number of bits for the red channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_GREEN\_BITS & Number of bits for the green channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_BLUE\_BITS  & Number of bits for the blue channel of the accumulation buffer.\\ \hline
-GLFW\_ACCUM\_ALPHA\_BITS & Number of bits for the alpha channel of the accumulation buffer.\\ \hline
+GLFW\_ACCUM\_RED\_BITS   & Number of bits for the red channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_GREEN\_BITS & Number of bits for the green channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_BLUE\_BITS  & Number of bits for the blue channel of the accumulator buffer.\\ \hline
+GLFW\_ACCUM\_ALPHA\_BITS & Number of bits for the alpha channel of the accumulator buffer.\\ \hline
 GLFW\_AUX\_BUFFERS       & Number of auxiliary buffers.\\ \hline
 GLFW\_STEREO             & GL\_TRUE if stereo rendering is supported, else GL\_FALSE.\\ \hline
-GLFW\_WINDOW\_NO\_RESIZE & GL\_TRUE if the window cannot be resized by the user, else GL\_FALSE.\\ \hline
+GLFW\_WINDOW\_NO\_RESIZE & GL\_TRUE if the window cannot be resized, else GL\_FALSE.\\ \hline
 GLFW\_FSAA\_SAMPLES      & Number of multisampling buffer samples. Zero indicated multisampling is disabled.\\ \hline
-GLFW\_OPENGL\_VERSION\_MAJOR & Major number of the actual version of the context.\\ \hline
-GLFW\_OPENGL\_VERSION\_MINOR & Minor number of the actual version of the context.\\ \hline
-GLFW\_OPENGL\_FORWARD\_COMPAT & GL\_TRUE if the context is forward-compatible, else GL\_FALSE.\\ \hline
-GLFW\_OPENGL\_DEBUG\_CONTEXT & GL\_TRUE if the context is a debug context.\\ \hline
-GLFW\_OPENGL\_PROFILE    & The profile implemented by the context, or zero.\\ \hline
+GLFW\_OPENGL\_VERSION\_MAJOR & Major number of the desired OpenGL version.\\ \hline
+GLFW\_OPENGL\_VERSION\_MINOR & Minor number of the desired OpenGL version.\\ \hline
+GLFW\_OPENGL\_FORWARD\_COMPAT & GL\_TRUE if the OpenGL context is forward compatible (i.e. disallows legacy functionality), else GL\_FALSE.
+This is always GL\_FALSE for OpenGL version 2.1 and below.\\ \hline
 \end{tabular}
 \end{center}
 \caption{Window parameters for \textbf{glfwGetWindowParam}}
@@ -519,12 +482,12 @@ and the second argument is the height of the window. Here is an example
 of how to use a window size callback function:
 
 \begin{lstlisting}
-int windowWidth, windowHeight;
+int WinWidth, WinHeight;
 
 void GLFWCALL WindowResize( int width, int height )
 {
-    windowWidth  = width;
-    windowHeight = height;
+    WinWidth  = width;
+    WinHeight = height;
 }
 
 int main( void )
@@ -547,9 +510,8 @@ is to use the function \textbf{glfwGetWindowSize}:
 void glfwGetWindowSize( int *width, int *height )
 \end{lstlisting}
 
-The variables pointed to by \textit{width} and \textit{height} are set to the
-current window dimensions.  Note that either of these may be NULL; that
-argument is then ignored.
+The \textit{width} and \textit{height} arguments are filled out with the
+current window dimensions.
 
 
 %-------------------------------------------------------------------------
@@ -572,14 +534,11 @@ frame, and begin rendering a new frame. This is done with the command
 void glfwSwapBuffers( void )
 \end{lstlisting}
 
-After swapping the front and back rendering buffers, \textbf{glfwSwapBuffers}
-by default calls \textbf{glfwPollEvents}\footnote{This behavior can be disabled
-by calling \textbf{glfwDisable} with the argument GLFW\_AUTO\_POLL\_EVENTS.}.
-This is to ensure frequent polling of events, such as keyboard and mouse input,
-and window reshaping events.  Even if a given application does not use input
-events, without frequent polling of events (at \emph{least} once every few
-seconds), most modern window systems will flag the application as unresponsive
-and may suggest that the user terminate it.
+Besides swapping the front and back rendering buffers,
+\textbf{glfwSwapBuffers} also calls \textbf{glfwPollEvents}\footnote{This
+behavior can be disabled by calling \textbf{glfwDisable} with the argument
+GLFW\_AUTO\_POLL\_EVENTS.}. This is to ensure frequent polling of events,
+such as keyboard and mouse input, and window reshaping events.
 
 Sometimes it can be useful to select when the buffer swap will occur. With
 the function \textbf{glfwSwapInterval} it is possible to select the
@@ -599,12 +558,11 @@ when it is not desirable to measure the time it takes to wait for the
 vertical retrace. However, a swap interval of 1 generally gives better
 visual quality.
 
-It should be noted that not all \OpenGL\ implementations and hardware support
-this function, in which case \textbf{glfwSwapInterval} will have no effect.  ATI
-Radeon cards under Microsoft Windows are especially notorious in this regard.
-Sometimes it is only possible to affect the swap interval through driver
-settings (e.g.  the display settings under Windows, or as an environment
-variable setting under Unix).
+It should be noted that not all \OpenGL\ implementations and hardware
+support this function, in which case \textbf{glfwSwapInterval} will have
+no effect. Sometimes it is only possible to affect the swap interval
+through driver settings (e.g. the display settings under Windows, or as an
+environment variable setting under Unix).
 
 
 %-------------------------------------------------------------------------
@@ -621,9 +579,9 @@ int glfwGetVideoModes( GLFWvidmode *list, int maxcount )
 \end{lstlisting}
 
 The argument \textit{list} is a vector of GLFWvidmode structures, and
-\textit{maxcount} is the maximum number of video modes that your vector can
-hold. \textbf{glfwGetVideoModes} will return the number of video modes detected
-on the system, up to \textit{maxcount}.
+\textit{maxcount} is the maximum number of video modes that your vector
+can hold. \textbf{glfwGetVideoModes} will return the actual number of
+video modes detected on the system.
 
 The GLFWvidmode structure looks like this:
 
@@ -676,16 +634,12 @@ The first thing to know about input handling in \GLFW\ is that all
 keyboard and mouse input is collected by checking for input events. This
 has do be done manually by calling either \textbf{glfwPollEvents} or
 \textbf{glfwSwapBuffers} (which implicitly calls \textbf{glfwPollEvents}
-for you). Normally this is not a cause for concern, as
+for you). Normally this does not have to be a concern, since
 \textbf{glfwSwapBuffers} is called every frame, which should be often
-enough (about 10-100 times per second for a normal \OpenGL\ application) that
-the window will feel responsive.
-
-One exception is when an application is updating its view only in response to input.
-In this case the \textbf{glfwWaitEvents} is useful, as it blocks the calling
-thread until an event arrives.  The refresh callback, set with
-\textbf{glfwSetWindowRefreshCallback}, may also be useful for such
-applications, especially on unbuffered window systems.
+enough (about 10-100 times per second for a normal \OpenGL\ application).
+One exception is when rendering is paused, and then the program waits for
+input to begin animation again. In this case \textbf{glfwPollEvents} has
+to be called repeatedly until any new input events arrive.
 
 If it is not desirable that \textbf{glfwPollEvents is} called implicitly
 from \textbf{glfwSwapBuffers}, call \textbf{glfwDisable} with the argument
@@ -698,7 +652,7 @@ called.
 
 %-------------------------------------------------------------------------
 \section{Keyboard Input}
-\GLFW\ provides three mechanisms for getting keyboard input:
+\GLFW\ gives three options for getting keyboard input:
 
 \begin{itemize}
 \item Manually polling the state of individual keys.
@@ -707,12 +661,12 @@ called.
 \item Automatically receive characters, using a callback function.
 \end{itemize}
 
-Depending on what the keyboard input will be used for, different methods may be
-preferred. The main difference between the two last methods is that while
-characters are affected by modifier keys (such as shift), key state is
-independent of any modifier keys. Also, special keys (such as function keys,
-cursor keys and modifier keys) are not reported to the character callback
-function.
+Depending on what the keyboard input will be used for, either of the
+methods may be more suitable. The main difference between the two last
+options is that while characters are affected by modifier keys (such as
+shift), key state is independent of any modifier keys. Also, special keys
+(such as function keys, cursor keys and modifier keys) are not reported to
+the character callback function.
 
 %-------------------------------------------------------------------------
 \subsection{Key state}
@@ -743,8 +697,8 @@ glfwEnable( GLFW_STICKY_KEYS );
 When sticky keys are enabled, a key will not be released until it is
 checked with \textbf{glfwGetKey}. To disable sticky keys, call
 \textbf{glfwDisable} witht the argument GLFW\_STICKY\_KEYS. Then all keys
-that are not currently held down will be released and future key releases
-will take place immediately when the user releases the key without
+that are not currently held down will be released, and future key releases
+will take place immediately when the user releases the key, without
 waiting for \textbf{glfwGetKey} to check the key. By default sticky keys
 are disabled.
 
@@ -760,8 +714,8 @@ recording many key presses in the first section that will be detected in
 the second section. To avoid this problem, always disable sticky keys
 before leaving a section of a program.
 
-A usually better alternative to using \textbf{glfwGetKey} is to register a
-keyboard input callback function with \textbf{glfwSetKeyCallback}:
+An alternative to using \textbf{glfwGetKey} is to register a keyboard
+input callback function with \textbf{glfwSetKeyCallback}:
 
 \begin{lstlisting}
 void glfwSetKeyCallback( GLFWkeyfun cbfun )
@@ -773,10 +727,8 @@ identifier, and the second is the new key state, which can be GLFW\_PRESS
 or GLFW\_RELEASE. To unregister a callback function, call
 \textbf{glfwSetKeyCallback} with \textit{fun} = NULL.
 
-Using the callback function, you can be sure not to miss any key press or
-release events, regardless of how many may have occurred during the last frame.
-It also encourages event-based design, where the application responds only to
-actual events instead of having to poll for every supported event.
+A callback function can be useful in some situations. For instance it can
+replace multiple \textbf{glfwGetKey} calls with a switch/case statement.
 
 %-------------------------------------------------------------------------
 \subsection{Character input}
@@ -791,7 +743,7 @@ void glfwSetCharCallback( GLFWcharfun cbfun )
 
 The argument \textit{fun} is a pointer to a callback function. The
 callback function shall take two integer arguments. The first is a Unicode
-code point, and the second is  GLFW\_PRESS if the key that generated
+character code, and the second is  GLFW\_PRESS if the key that generated
 the character was pressed, or GLFW\_RELEASE if it was released. To
 unregister a callback function, call \textbf{glfwSetCharCallback} with
 \textit{fun} = NULL.
@@ -848,17 +800,16 @@ polling or callback functions.
 
 %-------------------------------------------------------------------------
 \subsection{Mouse position}
-To query the position of the mouse cursor, call \textbf{glfwGetMousePos}:
+To read the mouse position, you can use the function
+\textbf{glfwGetMousePos}:
 
 \begin{lstlisting}
 void glfwGetMousePos( int *x, int *y )
 \end{lstlisting}
 
-The variables pointed to by \textit{x} and \textit{y} will be updated with the
-current position of the mouse cursor relative to the upper-left corner of the
-client area of the \GLFW\ window.
-
-An alternative is to use a callback function, which can be set with
+The arguments \textit{x} and \textit{y} point to integer variables that
+will be updated with the current absolute mouse position. An alternative
+is to use a callback function instead, which can be set with
 \textbf{glfwSetMousePosCallback}:
 
 \begin{lstlisting}
@@ -866,13 +817,8 @@ void glfwSetMousePosCallback( GLFWmouseposfun cbfun )
 \end{lstlisting}
 
 The function that \textit{fun} points to will be called every time the
-mouse cursor moves.  The first argument to the callback function is
-the cursor x-coordinate and the second the cursor y-coordinate, both relative
-to the upper-left corner of the client area of the \GLFW\ window.
-
-Note that while the \textbf{glfwGetMousePos} function only reports the final
-position after cursor movement events have been processed, using a callback
-function lets the application see each and every such event.
+mouse position changes. The first argument to the callback function is
+the mouse x position, and the second argument is the mouse y position.
 
 
 %-------------------------------------------------------------------------
@@ -883,24 +829,24 @@ To query the state of a mouse button, call \textbf{glfwGetMouseButton}:
 int glfwGetMouseButton( int button )
 \end{lstlisting}
 
-The argument \textit{button} can be any \GLFW\ mouse button token, i.e.
-GLFW\_MOUSE\_BUTTON\_1 through GLFW\_MOUSE\_BUTTON\_8 or one of
-GLFW\_MOUSE\_BUTTON\_LEFT, GLFW\_MOUSE\_BUTTON\_RIGHT or
+The argument \textit{button} can be one of the following mouse button
+identifiers: GLFW\_MOUSE\_BUTTON\_LEFT, GLFW\_MOUSE\_BUTTON\_RIGHT or
 GLFW\_MOUSE\_BUTTON\_MIDDLE. \textbf{glfwGetMouseButton} will return
-GLFW\_PRESS (which is a non-zero value) if the corresponding mouse button is
-held down, otherwise it will return GLFW\_RELEASE (which is equal to zero).
+GLFW\_PRESS (which is a non-zero value) if the corresponding mouse
+button is held down, otherwise it will return GLFW\_RELEASE (which is
+equal to zero).
 
-Just as it is possible to make keys ``sticky'', it is also possible to make
-each mouse button appear as held down until it is checked with
-\textbf{glfwGetMouseButton}.  To enable sticky mouse buttons, call
+Just as it is possible to make keys ``sticky'', it is also possible to
+make mouse buttons appear as held down until the button is checked for
+with \textbf{glfwGetMouseButton}. To enable sticky mouse buttons, call
 \textbf{glfwEnable} with the argument GLFW\_STICKY\_MOUSE\_BUTTONS.
 
 When sticky mouse buttons are enabled, a mouse button will not be released
 until it is checked with \textbf{glfwGetMouseButton}. To disable sticky
 mouse buttons, call \textbf{glfwDisable} with the argument
 GLFW\_STICKY\_MOUSE\_BUTTONS. Then all mouse buttons that are not
-currently held down will be released and future mouse button releases
-will take place immediately when the user releases the mouse button
+currently held down will be released, and future mouse button releases
+will take place immediately when the user releases the mouse button,
 without waiting for \textbf{glfwGetMouseButton} to check for the mouse
 button. By default sticky mouse buttons are disabled.
 
@@ -920,10 +866,9 @@ depending on the new state of the corresponding mouse button.
 
 %-------------------------------------------------------------------------
 \subsection{Mouse wheel}
-Some mice have a mouse wheel, most commonly used for vertical scrolling.  Also,
-most modern touchpads allow the user to scroll at least vertically, either by
-reserving an area for scrolling or through multi-finger gestures. To get the
-position of the mouse wheel, call \textbf{glfwGetMouseWheel}:
+Some mice have a mouse wheel, which can be thought of as a third mouse
+axis. To get the position of the mouse wheel, call
+\textbf{glfwGetMouseWheel}:
 
 \begin{lstlisting}
 int glfwGetMouseWheel( void )
@@ -931,8 +876,7 @@ int glfwGetMouseWheel( void )
 
 The function returns an integer that represents the position of the mouse
 wheel. When the user turns the wheel, the wheel position will increase or
-decrease.  Note that since scrolling hardware has no absolute position, \GLFW\
-simply sets the position to zero when the window is opened.
+decrease.
 
 It is also possible to register a callback function for mouse wheel events
 with the \textbf{glfwSetMouseWheelCallback} function:
@@ -986,7 +930,7 @@ have to be called in order for joystick state to be updated.
 
 %-------------------------------------------------------------------------
 \subsection{Joystick capabilities}
-First, it is often necessary to determine if a joystick is connected and
+First, it is often necessary to determine if a joystick is connected, and
 what its capabilities are. To get this information the function
 \textbf{glfwGetJoystickParam} can be used:
 
@@ -1004,10 +948,6 @@ To determine the number of axes or buttons that are supported by the
 joystick, \textit{param} should be GLFW\_AXES or GLFW\_BUTTONS,
 respectively.
 
-Note that \GLFW\ supports both D-pads and POVs, even though they are not
-explicitly mentioned in the API.  D-pads are exposed as a set of four buttons
-and POVs are as two axes.
-
 
 %-------------------------------------------------------------------------
 \subsection{Joystick position}
@@ -1020,8 +960,8 @@ int glfwGetJoystickPos( int joy, float *pos, int numaxes )
 
 As with \textbf{glfwGetJoystickParam}, the \textit{joy} argument
 specifies which joystick to retrieve information from. The
-\textit{numaxes} argument specifies how many axes to return positions for and the
-\textit{pos} argument specifies an array in which they
+\textit{numaxes} argument specifies how many axes to return, and the
+\textit{pos} argument specifies an array in which all the axis positions
 are stored. The function returns the actual number of axes that were
 returned, which could be less than \textit{numaxes} if the joystick does
 not support all the requested axes, or if the joystick is not connected.
@@ -1059,12 +999,12 @@ int glfwGetJoystickButtons( int joy, unsigned char *buttons,
                             int numbuttons )
 \end{lstlisting}
 
-The function works just like the \textbf{glfwGetJoystickAxis} function, except
-that it returns the state of joystick buttons instead of axis positions. Each
-button in the array specified by the \textit{buttons} argument can be either
-GLFW\_PRESS or GLFW\_RELEASE, indicating whether the corresponding button is
-currently held down or not. Unsupported buttons will have the value
-GLFW\_RELEASE.
+The function works just like the \textbf{glfwGetJoystickAxis} function,
+except that it returns the state of joystick buttons instead of axis
+positions. Each button in the array specified by the \textit{buttons}
+argument can be either GLFW\_PRESS or GLFW\_RELEASE, telling if the
+corresponding button is currently held down or not. Unsupported buttons
+will have the value GLFW\_RELEASE.
 
 
 %-------------------------------------------------------------------------
@@ -1108,149 +1048,6 @@ be set to.
 
 
 %-------------------------------------------------------------------------
-\section{Sleep}
-Sometimes it can be useful to put a program to sleep for a short time. It
-can be used to reduce the CPU load in various situations. For this
-purpose, there is a function called \textbf{glfwSleep}, which has the
-following C syntax:
-
-\begin{lstlisting}
-void glfwSleep( double time )
-\end{lstlisting}
-
-The function will put the calling thread to sleep for the time specified
-with the argument \textit{time}, which has the unit seconds. When
-\textbf{glfwSleep} is called, the calling thread will be put in waiting
-state, and thus will not consume any CPU time.
-
-Note that there is generally a minimum sleep time that will be recognized
-by the operating system, which is usually coupled to the task-switching
-interval. This minimum time is often in the range $5~-~20 ms$, and it is
-not possible to make a thread sleep for less than that time. Specifying a
-very small sleep time may result in \textbf{glfwSleep} returning
-immediately, without putting the thread to sleep.
-
-
-%-------------------------------------------------------------------------
-% Image and Texture Import
-%-------------------------------------------------------------------------
-\chapter{Image and Texture Import}
-\thispagestyle{fancy}
-In many, if not most, \OpenGL\ applications you want to use pre-generated
-2D images for surface textures, light maps, transparency maps etc.
-Typically these images are stored with a standard image format in a file,
-which requires the program to decode and load the image(s) from file(s),
-which can require much work from the programmer.
-
-To make life easier for \OpenGL\ developers, \GLFW\ has built-in support
-for loading images from files.
-
-
-%-------------------------------------------------------------------------
-\section{Texture Loading}
-To load a texture from a file, you can use the function
-\textbf{glfwLoadTexture2D}:
-
-\begin{lstlisting}
-int glfwLoadTexture2D( const char *name, int flags )
-\end{lstlisting}
-
-This function reads a 2D image from a Truevision Targa format file (.TGA)
-with the name given by \textit{name}, and uploads it to texture memory.
-It is similar to the \OpenGL\ function \textbf{glTexImage2D}, except that
-the image data is read from a file instead of from main memory, and all
-the pixel format and data storage flags are handled automatically. The
-\textit{flags} argument can be used to control how the texture is
-loaded.
-
-If \textit{flags} is GLFW\_ORIGIN\_UL\_BIT, the origin of the
-texture will be the upper left corner (otherwise it is the lower left
-corner). If \textit{flags} is GLFW\_BUILD\_MIPMAPS\_BIT, all mipmap levels
-will be generated and uploaded to texture memory (otherwise only one
-mipmap level is loaded). If \textit{flags} is GLFW\_ALPHA\_MAP\_BIT, then
-any gray scale images will be loaded as alpha maps rather than luminance
-maps.
-
-To make combinations of the flags, or them together (e.g. like this:
-\texttt{GLFW\_ORIGIN\_UL\_BIT | GLFW\_BUILD\_MIPMAPS\_BIT}).
-
-Here is an example of how to upload a texture from a file to \OpenGL\
-texture memory, and configure the texture for trilinear interpolation
-(assuming an \OpenGL\ window has been opened successfully):
-
-\begin{mysamepage}[10]
-\begin{lstlisting}
-    // Load texture from file, and build all mipmap levels
-    glfwLoadTexture2D( "mytexture.tga", GLFW_BUILD_MIPMAPS_BIT );
-
-    // Use trilinear interpolation for minification
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                     GL_LINEAR_MIPMAP_LINEAR );
-
-    // Use bilinear interpolation for magnification
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                     GL_LINEAR );
-
-    // Enable texturing
-    glEnable( GL_TEXTURE_2D );
-\end{lstlisting}
-\end{mysamepage}
-
-As you can see, \textbf{glfwLoadTexture2D} is very easy to use. Since it
-can also automatically create mipmaps when required, it is also a very
-powerful function.
-
-
-%-------------------------------------------------------------------------
-\section{Image Loading}
-In certain cases it may be useful to be able to load an image into client
-memory (application memory), without directly uploading the image to
-\OpenGL\ texture memory. For example, one may wish to retain a copy of the
-texture in local memory for future use. Another example is when the image
-is not to be used as a texture at all, e.g. if it is to be used as a
-height map.
-
-\GLFW\ also offers the possibility to load an image to application memory,
-using the \textbf{glfwReadImage} function:
-
-\begin{lstlisting}
-int glfwReadImage( const char *name, GLFWimage *img, int flags )
-\end{lstlisting}
-
-The function reads the image given by the argument \textit{name}, and upon
-success stores the relevant image information and pixel data in the
-GLFWimage structure \textit{img}. The GLFWimage structure is defined as:
-
-\begin{lstlisting}
-typedef struct {
-    int Width, Height;    // Image dimensions
-    int Format;           // OpenGL pixel format
-    int BytesPerPixel;    // Number of bytes per pixel
-    unsigned char *Data;  // Pointer to pixel data
-} GLFWimage;
-\end{lstlisting}
-
-\textit{Data} points to the loaded pixel data. If the function loaded the
-image successfully, GL\_TRUE is returned, otherwise GL\_FALSE is returned.
-
-Possible flags for the \textit{flags} argument are GLFW\_ORIGIN\_UL\_BIT,
-GLFW\_NO\_RESCALE\_BIT and GLFW\_ALPHA\_MAP\_BIT. GLFW\_ORIGIN\_UL\_BIT
-and GLFW\_ALPHA\_MAP\_BIT work as described for the \textbf{glfwLoadTexture2D}
-function. If the GLFW\_NO\_RESCALE\_BIT flag is set, the image will not be
-rescaled to the closest larger $2^m\times 2^n$ resolution, which is
-otherwise the default action for images with non-power-of-two dimenstions.
-
-When an image that was loaded with the \textbf{glfwReadImage} function is
-not used anymore (e.g. when it has been uploaded to texture memory), you
-should use the function \textbf{glfwFreeImage} to free the allocated
-memory:
-
-\begin{lstlisting}
-void glfwFreeImage( GLFWimage *img )
-\end{lstlisting}
-
-
-%-------------------------------------------------------------------------
 % OpenGL Extension Support
 %-------------------------------------------------------------------------
 \chapter{OpenGL Extension Support}
@@ -1268,8 +1065,8 @@ An extension is defined by:
 \end{enumerate}
 
 A list of official extensions, together with their definitions, can be
-found at the \textit{OpenGL Registry}
-(\url{http://www.opengl.org/registry/}).
+found at the \textit{OpenGL Extension Registry}
+(\url{http://oss.sgi.com/projects/ogl-sample/registry/}).
 
 To use a certain extension, the following steps must be performed:
 
@@ -1283,12 +1080,6 @@ To use a certain extension, the following steps must be performed:
 How this is done using \GLFW\ is described in the following sections.
 Please note that this chapter covers some advanced topics, and is quite
 specific to the C programming language.
-
-For a much easier way to get access to \OpenGL\ extensions, you should probably
-use a dedicated extension loading library such as GLEW or GLee.  This kind of
-library greatly reduces the amount of work necessary to use \OpenGL\
-extensions.  GLEW in particular has been extensively tested with and works well
-with \GLFW .
 
 
 %-------------------------------------------------------------------------
@@ -1304,25 +1095,25 @@ is an example of how to check for the extension GL\_ARB\_multitexture:
     // Extension is supported by the include files
 #else
     // Extension is not supported by the include files
-    // Get a more up-to-date <GL/gl.h> file!
+    // Update your <GL/gl.h> file!
 #endif
 \end{lstlisting}
 
 
 %-------------------------------------------------------------------------
 \section{Runtime Check}
-Even if the compiler include files have defined all the necessary tokens, a
-given machine may not actually support the extension (it may have a graphics
-card with a different \OpenGL\ implementation, or an older driver). That is why
-it is necessary to do a run time check for the extension support as well. This
-is done with the \GLFW\ function \textbf{glfwExtensionSupported}, which has the
-C syntax:
+Even if the compiler include files have defined all the necessary tokens,
+the target system may not support the extension (perhaps it has a
+different graphic card with a different \OpenGL\ implementation, or it has
+an older driver). That is why it is necessary to do a run time check for
+the extension support as well. This is done with the \GLFW\ function
+\textbf{glfwExtensionSupported}, which has the C syntax:
 
 \begin{lstlisting}
 int glfwExtensionSupported( const char *extension )
 \end{lstlisting}
 
-The argument \textit{extension} is a null terminated ASCII string
+The argument \textit{extension} is a null terminated ISO~8859-1 string
 with the extension name. \textbf{glfwExtensionSupported} returns GL\_TRUE
 if the extension is supported, otherwise it returns GL\_FALSE.
 
@@ -1340,7 +1131,7 @@ int multitexture_supported;
         glfwExtensionSupported( "GL_ARB_multitexture" );
 #else
     // Extension is not supported by the include files
-    // Get a more up-to-date <GL/gl.h> file!
+    // Update your <GL/gl.h> file!
     multitexture_supported = GL_FALSE;
 #endif
 \end{lstlisting}
@@ -1361,16 +1152,16 @@ Now it is easy to check for the extension within the program, simply do:
 
 %-------------------------------------------------------------------------
 \section{Fetching Function Pointers}
-Some extensions, though not all, require the use of new \OpenGL\ functions.
-These entry points are not necessarily exposed by your link libraries, making
-it necessary to find them dynamically at run time.  You can retrieve these
-entry points using the \textbf{glfwGetProcAddress} function:
+Some extensions (not all) require the use of new \OpenGL\ functions, which
+are not necessarily defined by your link libraries. Thus it is necessary
+to get the function pointers dynamically at run time. This is done with
+the \GLFW\ function \textbf{glfwGetProcAddress}:
 
 \begin{lstlisting}
 void * glfwGetProcAddress( const char *procname )
 \end{lstlisting}
 
-The argument \textit{procname} is a null terminated ASCII string
+The argument \textit{procname} is a null terminated ISO~8859-1 string
 holding the name of the \OpenGL\ function. \textbf{glfwGetProcAddress}
 returns the address to the function if the function is available,
 otherwise NULL is returned.
@@ -1388,20 +1179,21 @@ errors. My proposed solution is the following:
 
 \begin{itemize}
 \item Do not use the function name for the variable name. Use something
-      similar, perhaps by adding a prefix or suffix, and then use
+      similar (perhaps with a prefix or suffix), and then use
       \texttt{\#define} to map the function name to your variable.
 \item The standard type definition naming convention for function pointers
       is \texttt{PFN\textit{xxxx}PROC}, where \texttt{\textit{xxxx}} is
       the uppercase version of the function name (e.g.
-      \texttt{PFNGLACTIVETEXTUREARBPROC}). Either make sure your compiler uses
-      a compatible \texttt{gl.h} and/or \texttt{glext.h} file and rely on it to
-      define these types, or use define the types yourself using a different
-      naming convention (for example  \texttt{\textit{xxxx}\_T}) and do the
-      type definitions yourself.
+      \texttt{PFNGLACTIVETEXTUREARBPROC}). Either make sure that a
+      compatible \texttt{gl.h} and/or \texttt{glext.h} file is used by
+      your compiler and rely on it to do the type definitions for you, or
+      use a custom type definition naming convention (e.g.
+      \texttt{\textit{xxxx}\_T} or something) and do the type definitions
+      yourself.
 \end{itemize}
 
-Here is a slightly longer example of how to use an extension, this time using
-our own function pointer type definition):
+Here is an example of how to do it (here we use our own function pointer
+type defintion):
 
 \begin{lstlisting}
 // Type definition of the function pointer
@@ -1434,25 +1226,27 @@ int multitexture_supported;
 #endif
 \end{lstlisting}
 
-Even this example leaves some things to be desired. First of all, the
-GL\_ARB\_multitexture extension defines many more functions than the single
-function used above.  Secondly, checking if an extension is supported using
-\textbf{glfwExtensionSupported} is not enough to ensure that the corresponding
-functions will be valid.  You also need to check that the all function pointers
-returned by \textbf{glfwGetProcAddress} are non-NULL.
+Please note that the code example is not 100\% complete. First of all,
+the GL\_ARB\_multitexture extension defines many more functions than the
+single function that the code example defines. Secondly, checking if an
+extension is supported using \textbf{glfwExtensionSupported} is not enough
+to ensure that the corresponding functions will be valid. You also need to
+check if the function pointers returned by \textbf{glfwGetProcAddress} are
+non-NULL values.
 
 
 %-------------------------------------------------------------------------
 \subsection{Function pointer type definitions}
 To make a function pointer type definition, you need to know the function
 prototype. This can often be found in the extension definitions (e.g. at
-the \textit{OpenGL Registry}).  All the entry points that are defined by an
-extension are listed with their C prototype definitions under the section
-\textit{New Procedures and Functions} in the extension definition.
+the \textit{OpenGL Extension Registry}). All the functions that are
+defined for an extension are listed with their C prototype definitions
+under the section \textit{New Procedures and Functions} in the extension
+definition.
 
 For instance, if we look at the definition of the
 GL\_ARB\_texture\_compression extension, we find a list of new functions.
-One of these is declared like this:
+One of the functions looks like this:
 
 \begin{lstlisting}
 void GetCompressedTexImageARB(enum target, int lod, void *img);
@@ -1471,8 +1265,9 @@ pointer type definition, is to replace the function name with
 \texttt{(APIENTRY * \textit{xxxx}\_T)}, where \textit{xxxx} is the
 uppercase version of the name (according to the proposed naming
 convention). The keyword \texttt{APIENTRY} is needed to be compatible
-between different platforms. The \GLFW\ header file \texttt{GL/glfw.h}
-ensures that \texttt{APIENTRY} is properly defined on all supported platforms.
+between different platforms. The \GLFW\ include file \texttt{GL/glfw.h}
+always makes sure that \texttt{APIENTRY} is properly defined, regardless
+of which platform the program is compiled on.
 
 In other words, for the function \textbf{glGetCompressedTexImageARB} we
 get:
@@ -1482,583 +1277,6 @@ typedef void (APIENTRY * GLGETCOMPRESSEDTEXIMAGEARB_T)
              (GLenum target, GLint level, void *img);
 \end{lstlisting}
 
-
-
-%-------------------------------------------------------------------------
-% Multi Threading
-%-------------------------------------------------------------------------
-\chapter{Multi-threading}
-\thispagestyle{fancy}
-
-The initial intent of \GLFW\ was to provide only the basic functionality
-needed to create an \OpenGL\ application, but as \GLFW\ grew to be a
-platform for portable \OpenGL\ applications, it came to include a basic
-operating system independent multi-threading layer.
-
-However, this layer is fairly isolated from the rest of \GLFW\ and most of the
-rest of the API is \emph{not} thread-safe.  This is important to keep in mind
-when using \GLFW\ in a multi-threaded application.
-
-
-%-------------------------------------------------------------------------
-\section{Why Use Multi-threading?}
-Most computers being sold today have at least two CPU cores and many have four
-or more.  Even the cheapest netbooks have a semblance of multi-core in the form
-of hyper-threading.  With the individual cores not getting much faster,
-increased performance can only be had by using the additional CPU cores.
-
-However, the \OpenGL\ API itself is single-threaded and a given context should
-only be used by a single thread at a time.  This means that the primary use for
-multi-threading in the area of computer graphics isn't to distribute rendering
-across multiple threads, but rather to relieve the render thread from doing
-other kinds of work.  Examples include collision and dynamics ticks, audio
-processing and playback, networking and even rendering steps that don't involve
-calling \OpenGL .
-
-The downside of using multi-threading is the added complexity that comes from
-making a program non-sequential and to ensure that one thread does not
-interfere with the data being used by another.  Whether or not it is worth
-making a given application multi-threaded is a complex question and as always,
-there is no substitute for data and experience.  Profile, measure and
-experiment.
-
-
-%-------------------------------------------------------------------------
-\subsection{Avoid unnecessary waiting}
-In many situations, an application is placed in a wait state, waiting for
-a task to complete. Examples of such situations are: waiting for a file to
-load from disk, waiting for a vertical retrace (when using a double
-buffered display, such as a \GLFW\ window), waiting for a display
-to be cleared or data to be sent to the graphics card.
-
-Some or all of these operations can be done asynchronously, if the
-conditions are right and the operating system supports it, but a simple
-and efficient way of avoiding unnecessary waits is to use multi threading.
-If there are several active threads in an application, a thread that was
-waiting for CPU time can start running as soon as another thread enters a
-wait state. This will speed up an application on both single and multi
-processor systems.
-
-
-%-------------------------------------------------------------------------
-\subsection{Improve real time performance}
-It is a known fact that an application becomes more responsive and
-exhibits less timing problems if different jobs are assigned to separate
-threads.
-
-A typical example is streaming audio: when an audio buffer is empty, it
-has to be filled with new sound again within a limited amount of time, or
-strange sound loops or clicks may be the result. If a program is
-displaying graphics, loading files and playing audio at the same time (a
-typical game), it is very difficult to guarantee that the program will
-update the audio buffers in time if everything is performed in a single
-thread. On the other hand, if the audio buffer is updated from a separate
-thread, it becomes a very simple task.
-
-
-%-------------------------------------------------------------------------
-\section{How To Use Multi Threading}
-In general, every process, i.e. instance of a program, has its own memory
-space and its own set of resources, such as opened files etc. As a
-consequence, each process is coupled with a fairly large set of state.
-When the processor changes the execution from one process to another
-process, all this state has to be changed too (this is often referred to
-as a context switch), which can be quite costly.
-
-Threads are sometimes referred to as ``lightweight processes'', which
-gives you a clue of what they are. In contrast to a process, a thread is a
-separate execution path within a process, which shares the same memory
-area and resources. This means that very little state has to be changed
-when switching execution between different threads (basically only the
-stack pointer and the processor registers). It also means that data
-exchange between threads is very simple, and there is little or no
-overhead in exchanging data, since program variables and data areas can be
-shared between threads.
-
-Writing threaded applications may be very awkward before you get used to
-it, but there are a few key rules that are fairly simple to follow:
-
-\begin{enumerate}
-\item ALWAYS assure exclusive access to data that is shared between threads!
-\item Make sure that threads are synchronized properly!
-\item NEVER busy wait!
-\end{enumerate}
-
-In the following sections you will learn how to use the functionality of
-\GLFW\ to create threads and meet these rules, and hopefully you will find
-that it is not very difficult to write a multi threaded application.
-
-
-%-------------------------------------------------------------------------
-\section{Creating Threads}
-Creating a thread in \GLFW\ is very simple. You just call the function
-\textbf{glfwCreateThread}:
-
-\begin{lstlisting}
-GLFWthread glfwCreateThread( GLFWthreadfun fun, void *arg )
-\end{lstlisting}
-
-The argument \textit{fun} is a pointer to a function that will be
-executed by the new thread, and \textit{arg} is an argument that is passed
-to the thread. \textbf{glfwCreateThread} returns a positive thread ID
-number if the thread was created successfully, or a negative number if the
-thread could not be created.
-
-When the thread function returns, the thread will die. In most cases, you
-want to know when the thread has finished. A thread can wait for another
-thread to die with the command \textbf{glfwWaitThread}:
-
-\begin{lstlisting}
-int glfwWaitThread( GLFWthread ID, int waitmode )
-\end{lstlisting}
-
-The argument \textit{ID} is the thread handle that was obtained when
-creating the thread. If \textit{waitmode} is GLFW\_NOWAIT,
-\textbf{glfwWaitThread} will return immediately with the value GL\_TRUE if
-the thread died, or GL\_FALSE if it is still alive. This can be useful if
-you only want to check if the thread is alive. If \textit{waitmode} is
-GLFW\_WAIT, \textbf{glfwWaitThread} will wait until the specified thread
-has died. Regardless of what \textit{waitmode} is, \textbf{glfwWaitThread}
-will return immediately if the thread does not exist (e.g. if the thread
-has already died or if ID is an invalid thread handle).
-
-In some situations, you may want to brutally kill a thread without waiting
-for it to finish. This can be done with \textbf{glfwDestroyThread}:
-
-\begin{lstlisting}
-void glfwDestroyThread( GLFWthread ID )
-\end{lstlisting}
-
-It should be noted that \textbf{glfwDestroyThread} is a very dangerous
-operation, which may interrupt a thread in the middle of an important
-operation, which can result in lost data or deadlocks (when a thread is
-waiting for a condition to be raised, which can never be raised). In other
-words, do not use this function unless you really have to do it, and if
-you really know what you are doing (and what the thread that you are
-killing is doing)!
-
-To sum up what we have learned so far, here is an example program which
-will print ``Hello world!'' (error checking has been left out for
-brevity):
-
-\begin{mysamepage}[20]
-\begin{lstlisting}
-#include <stdio.h>
-#include <GL/glfw.h>
-
-void GLFWCALL HelloFun( void *arg )
-{
-    printf( "Hello " );
-}
-
-int main( void )
-{
-    GLFWthread thread;
-
-    glfwInit();
-    thread = glfwCreateThread( HelloFun, NULL );
-    glfwWaitThread( thread, GLFW_WAIT );
-    printf( "world!\n" );
-    glfwTerminate();
-
-    return 0;
-}
-\end{lstlisting}
-\end{mysamepage}
-
-The program starts by initializing \GLFW , as always, and then it goes on
-by creating a thread that will execute the function \texttt{HelloFun}. The
-main thread then waits for the created thread to do its work and finish.
-Finally the main thread prints ``world!'', terminates \GLFW\ and exits.
-The result is that ``Hello world!'' will be printed in the console window.
-
-You may have noticed that we have already used a simple form of thread
-synchronization, by waiting for the child thread to die before we print
-``world!''. If we would have placed the wait command after the print
-command, there would be no way of knowing which word would be printed
-first (``Hello'' or ``world!''). Our program would then suffer from a race
-condition, which is a term used to describe a situation where two (or
-more) threads are competing to complete a task first.
-
-In section \ref{par:condvar} you will learn how to do advanced thread
-synchronization using condition variables, which let threads wait for
-certain conditions before continuing execution.
-
-
-%-------------------------------------------------------------------------
-\section{Data Sharing Using Mutex Objects}
-In many situations you need to protect a certain data area while reading
-or modifying it, so that other threads do not start changing or reading
-the data while you are only half way through.
-
-For instance, consider that you have a vector \textit{vec}, and a variable
-\textit{N} telling how many elements there are in the vector. What happens
-if thread $A$ adds an element to the vector at the same time as thread $B$
-is removing an element from the vector? Figure \ref{fig:nomutex} shows a
-possible scenario.
-
-\begin{figure}[p]
-\begin{center}
-\begin{tabular}{cc}
-\textbf{Thread A} & \textbf{Thread B}\\
-\begin{minipage}{7cm}
-\lstset{backgroundcolor=\color{codeA}}
-\vspace{0.5\baselineskip}
-\begin{lstlisting}
-N ++;
-\end{lstlisting}
-\end{minipage}
-&
-\textit{waiting to exectue}
-\\
-
-\textit{waiting to exectue}
-&
-\begin{minipage}{7cm}
-\vspace{0.5\baselineskip}
-\lstset{backgroundcolor=\color{codeB}}
-\begin{lstlisting}
-x = vec[ N-1 ];
-N --;
-\end{lstlisting}
-\end{minipage}
-\\
-
-\begin{minipage}{7cm}
-\vspace{0.5\baselineskip}
-\lstset{backgroundcolor=\color{codeA}}
-\begin{lstlisting}
-vec[ N-1 ] = y;
-\end{lstlisting}
-\end{minipage}
-&
-\textit{waiting to exectue}
-\end{tabular}
-\end{center}
-\caption{Data sharing without mutex protection}
-\label{fig:nomutex}
-\end{figure}
-
-We have created a possible race condition. The result in this case is that
-thread $B$ reads an invalid element from the vector, and thread $A$
-overwrites an already existing element, which is not what we wanted.
-
-The solution is to only let one thread have access to the vector at a
-time. This is done with mutex objects (mutex stands for \textit{mutual
-exclusion}). The proper use of mutexes eliminates race conditions. To
-create a mutex object in \GLFW , you use the function
-\textbf{glfwCreateMutex}:
-
-\begin{lstlisting}
-GLFWmutex glfwCreateMutex( void )
-\end{lstlisting}
-
-\textbf{glfwCreateMutex} returns NULL if a mutex object could not be
-created, otherwise a mutex handle is returned. To destroy a mutex object
-that is no longer in use, call \textbf{glfwDestroyMutex}:
-
-\begin{lstlisting}
-void glfwDestroyMutex( GLFWmutex mutex )
-\end{lstlisting}
-
-Mutex objects by themselves do not contain any useful data. They act as a
-lock to any arbitrary data. Any thread can lock access to the data using
-the function \textbf{glfwLockMutex}:
-
-\begin{lstlisting}
-void glfwLockMutex( GLFWmutex mutex )
-\end{lstlisting}
-
-The argument \textit{mutex} is the mutex handle that was obtained when
-creating the mutex. \textbf{glfwLockMutex} will block the calling thread
-until the specified mutex is available (which will be immediately, if no
-other thread has locked it).
-
-Once a mutex has been locked, no other thread is allowed to lock the
-mutex. Only one thread at a time can get access to the mutex, and only the
-thread that has locked the mutex may use or manipulate the data which the
-mutex protects. To unlock a mutex, the thread calls
-\textbf{glfwUnlockMutex}:
-
-\begin{lstlisting}
-void glfwUnlockMutex( GLFWmutex mutex )
-\end{lstlisting}
-
-As soon as \textbf{glfwUnlockMutex} has been called, other threads may
-lock it again.
-
-Figure \ref{fig:withmutex} shows the scenario with the two threads
-trying to access the same vector, but this time they use a mutex object
-(\textit{vecmutex}).
-
-\begin{figure}[p]
-\begin{center}
-\begin{tabular}{cc}
-\textbf{Thread A} & \textbf{Thread B}\\
-\begin{minipage}{7cm}
-\lstset{backgroundcolor=\color{codeA}}
-\vspace{0.5\baselineskip}
-\begin{lstlisting}
-glfwLockMutex( vecmutex );
-N ++;
-\end{lstlisting}
-\end{minipage}
-&
-\textit{waiting to exectue}
-\\
-
-\textit{waiting to exectue}
-&
-\begin{minipage}{7cm}
-\vspace{0.5\baselineskip}
-\lstset{backgroundcolor=\color{codeB}}
-\begin{lstlisting}
-glfwLockMutex( vecmutex );
-\end{lstlisting}
-\end{minipage}
-\\
-
-\begin{minipage}{7cm}
-\vspace{0.5\baselineskip}
-\lstset{backgroundcolor=\color{codeA}}
-\begin{lstlisting}
-vec[ N-1 ] = y;
-glfwUnlockMutex( vecmutex );
-\end{lstlisting}
-\end{minipage}
-&
-\textit{waiting to exectue}
-\\
-
-\textit{waiting to exectue}
-&
-\begin{minipage}{7cm}
-\vspace{0.5\baselineskip}
-\lstset{backgroundcolor=\color{codeB}}
-\begin{lstlisting}
-x = vec[ N-1 ];
-N --;
-glfwUnlockMutex( vecmutex );
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-\end{center}
-\caption{Data sharing with mutex protection}
-\label{fig:withmutex}
-\end{figure}
-
-In this example, thread $A$ successfully obtains a lock on the mutex and
-directly starts modifying the vector data. Next, thread $B$ \textit{tries}
-to get a lock on the mutex, but is placed on hold since thread $A$ has
-already locked the mutex. Thread $A$ is free to continue its work, and
-when it is done it unlocks the mutex. \textit{Now} thread $B$ locks the
-mutex and gains exclusive access to the vector data, performs its work,
-and finally unlocks the mutex.
-
-The race condition has been avoided, and the code performs as expected.
-
-
-%-------------------------------------------------------------------------
-\section{Thread Synchronization Using Condition Variables}
-\label{par:condvar}
-Now you know how to create threads and how to safely exchange data between
-threads, but there is one important thing left to solve for multi threaded
-programs: conditional waits. Very often it is necessary for one thread to
-wait for a condition that will be satisfied by another thread.
-
-For instance, a thread~$A$ may need to wait for both thread~$B$ and
-thread~$C$ to finish a certain task before it can continue. For starters,
-we can create a mutex protecting a variable holding the number of
-completed threads:
-
-\begin{lstlisting}
-GLFWmutex mutex;
-int threadsdone;
-\end{lstlisting}
-
-Now, thread~$B$ and $C$ will lock the mutex and increase the
-\textit{threadsdone} variable by one when they are done, and then unlock
-the mutex again. Thread~$A$ can lock the mutex and check if threadsdone
-is equal to 2.
-
-If we assume that \textit{mutex} has been created successfully, the code
-for the three threads ($A$, $B$ and $C$) could be the following:
-
-\begin{mysamepage}[8]
-Thread~$A$: Wait for both thread~$B$ and $C$ to finish.
-\lstset{backgroundcolor=\color{codeA}}
-\begin{lstlisting}
-do
-{
-    glfwLockMutex( mutex );
-    done = (threadsdone == 2);
-    glfwUnlockMutex( mutex );
-}
-while( !done );
-\end{lstlisting}
-\end{mysamepage}
-
-\begin{mysamepage}[4]
-Thread~$B$ and $C$: Tell thread~$A$ that I am done.
-\lstset{backgroundcolor=\color{codeB}}
-\begin{lstlisting}
-glfwLockMutex( mutex );
-threadsdone ++;
-glfwUnlockMutex( mutex );
-\end{lstlisting}
-\lstset{backgroundcolor=\color{code}}
-\end{mysamepage}
-
-The problem is that when thread~$A$ discovers that thread~$B$ and $C$ are
-not done, it needs to check \textit{threadsdone} over and over again until
-\textit{threadsdone} is 2. We have created a busy waiting loop!
-
-The method will work without a doubt, but thread~$A$ will consume a lot of
-CPU power doing nothing. What we need is a way for thread~$A$ to halt
-until thread~$B$ or $C$ tells it to re-evaluate the conditions again. This
-is exactly what condition variables do.
-
-\GLFW\ supports three condition variable operations: wait, signal and
-broadcast. One or more threads may wait to be woken up on a condition, and
-one or more threads may signal or broadcast a condition. The difference
-between signal and broadcast is that broadcasting a condition wakes up all
-waiting threads (in an unspecified order, which is decided by task
-scheduling rules), while signaling a condition only wakes up one waiting
-thread (again, which one is unspecified).
-
-An important property of condition variables, which separates them from
-other signaling objects such as events, is that only \textit{currently
-waiting} threads are affected by a condition. A condition is ``forgotten''
-as soon as it has been signaled or broadcasted. That is why a condition
-variable is always associated with a mutex, which protects additional
-condition information, such as the ``done'' variable construct described
-above.
-
-This may all be confusing at first, but you will see that condition
-variables are both simple and powerful. They can be used to construct more
-abstract objects such as semaphores, events or gates (which is why \GLFW\
-does not support semaphores natively, for instance).
-
-Before we go on by solving the busy waiting scenario, let us go through
-the \GLFW\ condition variable functions. Just like for mutexes, you can
-create and destroy condition variable objects. The functions for doing
-this are \textbf{glfwCreateCond} and \textbf{glfwDestroyCond}:
-
-\begin{lstlisting}
-GLFWcond glfwCreateCond( void )
-\end{lstlisting}
-
-\begin{lstlisting}
-void glfwDestroyCond( GLFWcond cond )
-\end{lstlisting}
-
-\textbf{glfwCreateCond} returns NULL if a condition variable object could
-not be created, otherwise a condition variable handle is returned. To
-destroy a condition variable that is no longer in use, call
-\textbf{glfwDestroyCond}.
-
-To wait for a condition variable, you use \textbf{glfwWaitCond}, which has
-the C syntax:
-
-\begin{lstlisting}
-void glfwWaitCond( GLFWcond cond, GLFWmutex mutex, double timeout )
-\end{lstlisting}
-
-When \textbf{glfwWaitCond} is called, the locked mutex specified by
-\textit{mutex} will be unlocked, and the thread will be placed in a wait
-state until it receives the condition \textit{cond}. As soon as the
-waiting thread is woken up, the mutex \textit{mutex} will be locked again.
-If \textit{timeout} is GLFW\_INFINITY, \textbf{glfwWaitCond} will wait
-until the condition \textit{cond} is received. If \textit{timemout} is a
-positive time (in seconds), \textbf{glfwWaitCond} will wait until the
-condition cond is received or the specified time has passed.
-
-To signal or broadcast a condition variable, you use the functions
-\textbf{glfwSignalCond} and \textbf{glfwBroadcastCond}, respectively:
-
-\begin{lstlisting}
-void glfwSignalCond( GLFWcond cond )
-\end{lstlisting}
-
-\begin{lstlisting}
-void glfwBroadcastCond( GLFWcond cond )
-\end{lstlisting}
-
-\textbf{glfwSignalCond} will wake up one threads that is waiting for the
-condition \textit{cond}. \textbf{glfwBroadcastCond} will wake up all
-threads that are waiting for the condition cond.
-
-Now that we have the tools, let us see what we can do to solve the busy
-waiting situation. First, we add a condition variable to our data set:
-
-\begin{lstlisting}
-GLFWcond  cond;
-GLFWmutex mutex;
-int threadsdone;
-\end{lstlisting}
-
-If we assume that \textit{mutex} and \textit{cond} have been created
-successfully, the code for the three threads ($A$, $B$ and $C$) could be
-the following:
-
-\begin{mysamepage}[12]
-Thread~$A$: Wait for both thread~$B$ and $C$ to finish.
-\lstset{backgroundcolor=\color{codeA}}
-\begin{lstlisting}
-glfwLockMutex( mutex );
-do
-{
-    done = (threadsdone == 2);
-    if( !done )
-    {
-        glfwWaitCond( cond, mutex, GLFW_INFINITY );
-    }
-}
-while( !done );
-glfwUnlockMutex( mutex );
-\end{lstlisting}
-\end{mysamepage}
-
-\begin{mysamepage}[6]
-Thread~$B$ and $C$: Tell thread~$A$ that I am done.
-\lstset{backgroundcolor=\color{codeB}}
-\begin{lstlisting}
-glfwLockMutex( mutex );
-threadsdone ++;
-glfwUnlockMutex( mutex );
-glfwSignalCond( cond );
-\end{lstlisting}
-\lstset{backgroundcolor=\color{code}}
-\end{mysamepage}
-
-With the addition of a condition variable, the busy waiting loop turned
-into a nice condition waiting loop, and thread~$A$ no longer wastes any
-CPU time. Also note that the mutex locking and unlocking is moved outside
-of the waiting loop. This is because \textbf{glfwWaitCond} effectively
-performs the necessary mutex locking and unlocking for us.
-
-
-%-------------------------------------------------------------------------
-\section{Calling GLFW Functions From Multiple Threads}
-The current release of \GLFW\ is not 100\% thread safe. In other words,
-most \GLFW\ functions may cause conflicts and undefined behaviour if they
-are called from different threads.
-
-To avoid conflicts, only the following \GLFW\ API functions should be
-regarded as thread safe (i.e. they can be called from any thread at any
-time):
-
-\begin{enumerate}
-\item All functions that deal with threads, mutexes and condition
-      variables (e.g. \textbf{glfwCreateThread}, \textbf{glfwLockMutex}
-      etc).
-\item The timing function \textbf{glfwSleep}.
-\end{enumerate}
-
-All other \GLFW\ API function calls should be done from a single thread.
-This also makes for better future compatibility, since future versions of
-\GLFW\ may implement per thread window contexts (much in the same way as
-\OpenGL\ has per thread rendering contexts), for instance.
 
 
 %-------------------------------------------------------------------------

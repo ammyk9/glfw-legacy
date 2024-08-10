@@ -424,7 +424,7 @@ const _GLFWfbconfig *_glfwChooseFBConfig( const _GLFWfbconfig *desired,
 // Create the GLFW window and its associated context
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwOpenWindow( int width, int height,
+GLFWAPI int glfwOpenWindow( int width, int height,
     int redbits, int greenbits, int bluebits, int alphabits,
     int depthbits, int stencilbits, int mode )
 {
@@ -565,24 +565,14 @@ GLFWAPI int GLFWAPIENTRY glfwOpenWindow( int width, int height,
         return GL_FALSE;
     }
 
-    // Do we have non-power-of-two textures (added to core in version 2.0)?
-    _glfwWin.has_GL_ARB_texture_non_power_of_two =
-        ( _glfwWin.glMajor >= 2 ) ||
-        glfwExtensionSupported( "GL_ARB_texture_non_power_of_two" );
-
-    // Do we have automatic mipmap generation (added to core in version 1.4)?
-    _glfwWin.has_GL_SGIS_generate_mipmap =
-        ( _glfwWin.glMajor >= 2 ) || ( _glfwWin.glMinor >= 4 ) ||
-        glfwExtensionSupported( "GL_SGIS_generate_mipmap" );
-
     if( _glfwWin.glMajor > 2 )
     {
         _glfwWin.GetStringi = (PFNGLGETSTRINGIPROC) glfwGetProcAddress( "glGetStringi" );
         if( !_glfwWin.GetStringi )
         {
             // This is a very common problem among people who compile GLFW
-            // on X11/GLX using custom build systems, as the glfwGetProcAddress
-            // code path selection needs explicit configuration
+            // on X11/GLX using custom build systems, as it needs explicit
+            // configuration in order to work
             //
             // See readme.html section 2.2 for details
 
@@ -610,7 +600,7 @@ GLFWAPI int GLFWAPIENTRY glfwOpenWindow( int width, int height,
 // Set hints for opening the window
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwOpenWindowHint( int target, int hint )
+GLFWAPI void glfwOpenWindowHint( int target, int hint )
 {
     if( !_glfwInitialized )
     {
@@ -671,7 +661,7 @@ GLFWAPI void GLFWAPIENTRY glfwOpenWindowHint( int target, int hint )
 // Properly kill the window / video display
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwCloseWindow( void )
+GLFWAPI void glfwCloseWindow( void )
 {
     if( !_glfwInitialized )
     {
@@ -691,7 +681,7 @@ GLFWAPI void GLFWAPIENTRY glfwCloseWindow( void )
 // Set the window title
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowTitle( const char *title )
+GLFWAPI void glfwSetWindowTitle( const char *title )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -707,7 +697,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowTitle( const char *title )
 // Get the window size
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwGetWindowSize( int *width, int *height )
+GLFWAPI void glfwGetWindowSize( int *width, int *height )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -729,7 +719,7 @@ GLFWAPI void GLFWAPIENTRY glfwGetWindowSize( int *width, int *height )
 // Set the window size
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowSize( int width, int height )
+GLFWAPI void glfwSetWindowSize( int width, int height )
 {
     if( !_glfwInitialized || !_glfwWin.opened || _glfwWin.iconified )
     {
@@ -755,7 +745,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowSize( int width, int height )
 // Set the window position
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowPos( int x, int y )
+GLFWAPI void glfwSetWindowPos( int x, int y )
 {
     if( !_glfwInitialized || !_glfwWin.opened || _glfwWin.fullscreen ||
         _glfwWin.iconified )
@@ -772,7 +762,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowPos( int x, int y )
 // Window iconification
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwIconifyWindow( void )
+GLFWAPI void glfwIconifyWindow( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened || _glfwWin.iconified )
     {
@@ -788,7 +778,7 @@ GLFWAPI void GLFWAPIENTRY glfwIconifyWindow( void )
 // Window un-iconification
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwRestoreWindow( void )
+GLFWAPI void glfwRestoreWindow( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened || !_glfwWin.iconified )
     {
@@ -807,7 +797,7 @@ GLFWAPI void GLFWAPIENTRY glfwRestoreWindow( void )
 // Swap buffers (double-buffering) and poll any new events
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSwapBuffers( void )
+GLFWAPI void glfwSwapBuffers( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -828,7 +818,7 @@ GLFWAPI void GLFWAPIENTRY glfwSwapBuffers( void )
 // Set double buffering swap interval (0 = vsync off)
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSwapInterval( int interval )
+GLFWAPI void glfwSwapInterval( int interval )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -844,7 +834,7 @@ GLFWAPI void GLFWAPIENTRY glfwSwapInterval( int interval )
 // Get window parameter
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwGetWindowParam( int param )
+GLFWAPI int glfwGetWindowParam( int param )
 {
     if( !_glfwInitialized )
     {
@@ -922,7 +912,7 @@ GLFWAPI int GLFWAPIENTRY glfwGetWindowParam( int param )
 // Set callback function for window size changes
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowSizeCallback( GLFWwindowsizefun cbfun )
+GLFWAPI void glfwSetWindowSizeCallback( GLFWwindowsizefun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -944,7 +934,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowSizeCallback( GLFWwindowsizefun cbfun )
 // Set callback function for window close events
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowCloseCallback( GLFWwindowclosefun cbfun )
+GLFWAPI void glfwSetWindowCloseCallback( GLFWwindowclosefun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -960,7 +950,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowCloseCallback( GLFWwindowclosefun cbfun )
 // Set callback function for window refresh events
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetWindowRefreshCallback( GLFWwindowrefreshfun cbfun )
+GLFWAPI void glfwSetWindowRefreshCallback( GLFWwindowrefreshfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -976,7 +966,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetWindowRefreshCallback( GLFWwindowrefreshfun cbf
 // Poll for new window and input events
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwPollEvents( void )
+GLFWAPI void glfwPollEvents( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -992,7 +982,7 @@ GLFWAPI void GLFWAPIENTRY glfwPollEvents( void )
 // Wait for new window and input events
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwWaitEvents( void )
+GLFWAPI void glfwWaitEvents( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {

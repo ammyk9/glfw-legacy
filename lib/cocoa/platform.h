@@ -37,11 +37,8 @@
 #if defined(__OBJC__)
 #import <Cocoa/Cocoa.h>
 #else
-#include <ApplicationServices/ApplicationServices.h>
 typedef void *id;
 #endif
-
-#include <pthread.h>
 
 #include "../../include/GL/glfw.h"
 
@@ -112,8 +109,6 @@ struct _GLFWwin_struct {
     int       samples;
 
     // OpenGL extensions and context attributes
-    int       has_GL_SGIS_generate_mipmap;
-    int       has_GL_ARB_texture_non_power_of_two;
     int       glMajor, glMinor, glRevision;
     int       glForward, glDebug, glProfile;
 
@@ -141,25 +136,21 @@ GLFWGLOBAL struct {
     // Window opening hints
     _GLFWhints      hints;
 
-    // Initial desktop mode
-    GLFWvidmode     desktopMode;
-
 // ========= PLATFORM SPECIFIC PART ======================================
 
     // Timer data
     struct {
-        double base;
-        double resolution;
-    } timer;
+        double t0;
+    } Timer;
 
     // dlopen handle for dynamically-loading extension function pointers
     void *OpenGLFramework;
 
-    id originalMode;
+    int Unbundled;
 
-    id autoreleasePool;
+    id DesktopMode;
 
-    CGEventSourceRef eventSource;
+    id AutoreleasePool;
 
 } _glfwLibrary;
 
@@ -192,77 +183,5 @@ GLFWGLOBAL struct {
 
 } _glfwInput;
 
-//------------------------------------------------------------------------
-// Thread information
-//------------------------------------------------------------------------
-typedef struct _GLFWthread_struct _GLFWthread;
-
-// Thread record (one for each thread)
-struct _GLFWthread_struct {
-
-    // Pointer to previous and next threads in linked list
-    _GLFWthread   *Previous, *Next;
-
-    // GLFW user side thread information
-    GLFWthread    ID;
-    GLFWthreadfun Function;
-
-    // System side thread information
-    pthread_t     PosixID;
-};
-
-// General thread information
-GLFWGLOBAL struct {
-
-    // Critical section lock
-    pthread_mutex_t  CriticalSection;
-
-    // Next thread ID to use (increments for every created thread)
-    GLFWthread       NextID;
-
-    // First thread in linked list (always the main thread)
-    _GLFWthread      First;
-
-} _glfwThrd;
-
-
-//========================================================================
-// Macros for encapsulating critical code sections (i.e. making parts
-// of GLFW thread safe)
-//========================================================================
-
-// Define so we can use the same thread code as X11
-#define _glfw_numprocessors(n) { \
-    int mib[2], ncpu; \
-    size_t len = 1; \
-    mib[0] = CTL_HW; \
-    mib[1] = HW_NCPU; \
-    n      = 1; \
-    if( sysctl( mib, 2, &ncpu, &len, NULL, 0 ) != -1 ) \
-    { \
-        if( len > 0 ) \
-        { \
-            n = ncpu; \
-        } \
-    } \
-}
-
-// Thread list management
-#define ENTER_THREAD_CRITICAL_SECTION \
-pthread_mutex_lock( &_glfwThrd.CriticalSection );
-#define LEAVE_THREAD_CRITICAL_SECTION \
-pthread_mutex_unlock( &_glfwThrd.CriticalSection );
-
-
-//========================================================================
-// Prototypes for platform specific internal functions
-//========================================================================
-
-// Time
-void _glfwInitTimer( void );
-
-// Joystick
-void _glfwInitJoysticks( void );
-void _glfwTerminateJoysticks( void );
 
 #endif // _platform_h_

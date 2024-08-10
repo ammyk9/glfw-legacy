@@ -39,7 +39,7 @@
 // Return timer value in seconds
 //========================================================================
 
-GLFWAPI double GLFWAPIENTRY glfwGetTime( void )
+GLFWAPI double glfwGetTime( void )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized )
@@ -55,7 +55,7 @@ GLFWAPI double GLFWAPIENTRY glfwGetTime( void )
 // Set timer value in seconds
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetTime( double time )
+GLFWAPI void glfwSetTime( double time )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized )
@@ -66,19 +66,4 @@ GLFWAPI void GLFWAPIENTRY glfwSetTime( double time )
     _glfwPlatformSetTime( time );
 }
 
-
-//========================================================================
-// Put a thread to sleep for a specified amount of time
-//========================================================================
-
-GLFWAPI void GLFWAPIENTRY glfwSleep( double time )
-{
-    // Is GLFW initialized?
-    if( !_glfwInitialized )
-    {
-        return;
-    }
-
-    _glfwPlatformSleep( time );
-}
 

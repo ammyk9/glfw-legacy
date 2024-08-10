@@ -37,72 +37,6 @@
 //************************************************************************
 
 //========================================================================
-// Initialize GLFW thread package
-//========================================================================
-
-static void initThreads( void )
-{
-    // Initialize critical section handle
-#ifdef _GLFW_HAS_PTHREAD
-    (void) pthread_mutex_init( &_glfwThrd.CriticalSection, NULL );
-#endif
-
-    // The first thread (the main thread) has ID 0
-    _glfwThrd.NextID = 0;
-
-    // Fill out information about the main thread (this thread)
-    _glfwThrd.First.ID       = _glfwThrd.NextID++;
-    _glfwThrd.First.Function = NULL;
-    _glfwThrd.First.Previous = NULL;
-    _glfwThrd.First.Next     = NULL;
-#ifdef _GLFW_HAS_PTHREAD
-    _glfwThrd.First.PosixID  = pthread_self();
-#endif
-}
-
-
-//========================================================================
-// Terminate GLFW thread package
-//========================================================================
-
-static void terminateThreads( void )
-{
-#ifdef _GLFW_HAS_PTHREAD
-
-    _GLFWthread *t, *t_next;
-
-    // Enter critical section
-    ENTER_THREAD_CRITICAL_SECTION
-
-    // Kill all threads (NOTE: THE USER SHOULD WAIT FOR ALL THREADS TO
-    // DIE, _BEFORE_ CALLING glfwTerminate()!!!)
-    t = _glfwThrd.First.Next;
-    while( t != NULL )
-    {
-        // Get pointer to next thread
-        t_next = t->Next;
-
-        // Simply murder the process, no mercy!
-        pthread_kill( t->PosixID, SIGKILL );
-
-        // Free memory allocated for this thread
-        free( (void *) t );
-
-        // Select next thread in list
-        t = t_next;
-    }
-
-    // Leave critical section
-    LEAVE_THREAD_CRITICAL_SECTION
-
-    // Delete critical section handle
-    pthread_mutex_destroy( &_glfwThrd.CriticalSection );
-
-#endif // _GLFW_HAS_PTHREAD
-}
-
-
-//========================================================================
 // Dynamically load libraries
 //========================================================================
 
@@ -177,9 +111,7 @@ static int initDisplay( void )
 
     // Fullscreen & screen saver settings
     // Check if GLX is supported on this display
-    if( !glXQueryExtension( _glfwLibrary.display,
-                            &_glfwLibrary.GLX.errorBase,
-                            &_glfwLibrary.GLX.eventBase))
+    if( !glXQueryExtension( _glfwLibrary.display, NULL, NULL ) )
     {
         fprintf(stderr, "GLX not supported\n");
         return GL_FALSE;
@@ -187,8 +119,8 @@ static int initDisplay( void )
 
     // Retrieve GLX version
     if( !glXQueryVersion( _glfwLibrary.display,
-                          &_glfwLibrary.GLX.versionMajor,
-                          &_glfwLibrary.GLX.versionMinor ) )
+                          &_glfwLibrary.glxMajor,
+                          &_glfwLibrary.glxMinor ) )
     {
         fprintf(stderr, "Unable to query GLX version\n");
         return GL_FALSE;
@@ -229,13 +161,8 @@ int _glfwPlatformInit( void )
         return GL_FALSE;
     }
 
-    // Initialize thread package
-    initThreads();
-
     // Try to load libGL.so if necessary
     initLibraries();
-
-    _glfwPlatformGetDesktopMode( &_glfwLibrary.desktopMode );
 
     // Install atexit() routine
     atexit( glfw_atexit );
@@ -251,24 +178,13 @@ int _glfwPlatformInit( void )
 
 
 //========================================================================
-// Close window and kill all threads
+// Close window
 //========================================================================
 
 int _glfwPlatformTerminate( void )
 {
-#ifdef _GLFW_HAS_PTHREAD
-    // Only the main thread is allowed to do this...
-    if( pthread_self() != _glfwThrd.First.PosixID )
-    {
-        return GL_FALSE;
-    }
-#endif // _GLFW_HAS_PTHREAD
-
     // Close OpenGL window
     glfwCloseWindow();
-
-    // Kill thread package
-    terminateThreads();
 
     // Terminate display
     terminateDisplay();

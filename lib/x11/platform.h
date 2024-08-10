@@ -45,13 +45,9 @@
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
 #include <GL/glx.h>
-#include "../../include/GL/glfw.h"
 
-// Do we have pthread support?
-#ifdef _GLFW_HAS_PTHREAD
- #include <pthread.h>
- #include <sched.h>
-#endif
+#include "../../include/GL/glfw.h"
+#include "x11_config.h"
 
 // We need declarations for GLX version 1.3 or above even if the server doesn't
 // support version 1.3
@@ -127,20 +123,6 @@
 // Pointer length integer
 // One day, this will most likely move into glfw.h
 typedef intptr_t GLFWintptr;
-
-
-#ifndef GLX_EXT_swap_control
-
-typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*,GLXDrawable,int);
-
-#endif /*GLX_MESA_swap_control*/
-
-
-#ifndef GLX_MESA_swap_control
-
-typedef int (*PFNGLXSWAPINTERVALMESAPROC)(int);
-
-#endif /*GLX_MESA_swap_control*/
 
 
 #ifndef GLX_SGI_swap_control
@@ -270,8 +252,6 @@ struct _GLFWwin_struct {
     int       samples;
 
     // OpenGL extensions and context attributes
-    int       has_GL_SGIS_generate_mipmap;
-    int       has_GL_ARB_texture_non_power_of_two;
     int       glMajor, glMinor, glRevision;
     int       glForward, glDebug, glProfile;
 
@@ -296,8 +276,6 @@ struct _GLFWwin_struct {
     Cursor        cursor;            // Invisible cursor for hidden cursor
 
     // GLX extensions
-    PFNGLXSWAPINTERVALEXTPROC             SwapIntervalEXT;
-    PFNGLXSWAPINTERVALMESAPROC            SwapIntervalMESA;
     PFNGLXSWAPINTERVALSGIPROC             SwapIntervalSGI;
     PFNGLXGETFBCONFIGATTRIBSGIXPROC       GetFBConfigAttribSGIX;
     PFNGLXCHOOSEFBCONFIGSGIXPROC          ChooseFBConfigSGIX;
@@ -305,8 +283,6 @@ struct _GLFWwin_struct {
     PFNGLXGETVISUALFROMFBCONFIGSGIXPROC   GetVisualFromFBConfigSGIX;
     PFNGLXCREATECONTEXTATTRIBSARBPROC     CreateContextAttribsARB;
     GLboolean   has_GLX_SGIX_fbconfig;
-    GLboolean   has_GLX_EXT_swap_control;
-    GLboolean   has_GLX_MESA_swap_control;
     GLboolean   has_GLX_SGI_swap_control;
     GLboolean   has_GLX_ARB_multisample;
     GLboolean   has_GLX_ARB_create_context;
@@ -386,18 +362,12 @@ GLFWGLOBAL struct {
     // Window opening hints
     _GLFWhints      hints;
 
-    // Initial desktop mode
-    GLFWvidmode     desktopMode;
-
 // ========= PLATFORM SPECIFIC PART ======================================
 
     Display        *display;
 
-    struct {
-        int         versionMajor, versionMinor;
-        int         eventBase;
-        int         errorBase;
-    } GLX;
+    // Server-side GLX version
+    int             glxMajor, glxMinor;
 
     struct {
         int         available;
@@ -427,55 +397,6 @@ GLFWGLOBAL struct {
 
 
 //------------------------------------------------------------------------
-// Thread record (one for each thread)
-//------------------------------------------------------------------------
-typedef struct _GLFWthread_struct _GLFWthread;
-
-struct _GLFWthread_struct {
-
-// ========= PLATFORM INDEPENDENT MANDATORY PART =========================
-
-    // Pointer to previous and next threads in linked list
-    _GLFWthread   *Previous, *Next;
-
-    // GLFW user side thread information
-    GLFWthread    ID;
-    GLFWthreadfun Function;
-
-// ========= PLATFORM SPECIFIC PART ======================================
-
-    // System side thread information
-#ifdef _GLFW_HAS_PTHREAD
-    pthread_t     PosixID;
-#endif
-
-};
-
-
-//------------------------------------------------------------------------
-// General thread information
-//------------------------------------------------------------------------
-GLFWGLOBAL struct {
-
-// ========= PLATFORM INDEPENDENT MANDATORY PART =========================
-
-    // Next thread ID to use (increments for every created thread)
-    GLFWthread       NextID;
-
-    // First thread in linked list (always the main thread)
-    _GLFWthread      First;
-
-// ========= PLATFORM SPECIFIC PART ======================================
-
-    // Critical section lock
-#ifdef _GLFW_HAS_PTHREAD
-    pthread_mutex_t  CriticalSection;
-#endif
-
-} _glfwThrd;
-
-
-//------------------------------------------------------------------------
 // Joystick information & state
 //------------------------------------------------------------------------
 GLFWGLOBAL struct {
@@ -486,23 +407,6 @@ GLFWGLOBAL struct {
     float         *Axis;
     unsigned char *Button;
 } _glfwJoy[ GLFW_JOYSTICK_LAST + 1 ];
-
-
-//========================================================================
-// Macros for encapsulating critical code sections (i.e. making parts
-// of GLFW thread safe)
-//========================================================================
-
-// Thread list management
-#ifdef _GLFW_HAS_PTHREAD
- #define ENTER_THREAD_CRITICAL_SECTION \
-         pthread_mutex_lock( &_glfwThrd.CriticalSection );
- #define LEAVE_THREAD_CRITICAL_SECTION \
-         pthread_mutex_unlock( &_glfwThrd.CriticalSection );
-#else
- #define ENTER_THREAD_CRITICAL_SECTION
- #define LEAVE_THREAD_CRITICAL_SECTION
-#endif
 
 
 //========================================================================

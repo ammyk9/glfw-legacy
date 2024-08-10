@@ -357,7 +357,7 @@ static void drawAllViews( void )
 // Window size callback function
 //========================================================================
 
-static void GLFWCALL windowSizeFun( int w, int h )
+static void windowSizeFun( int w, int h )
 {
     width  = w;
     height = h > 0 ? h : 1;
@@ -369,7 +369,7 @@ static void GLFWCALL windowSizeFun( int w, int h )
 // Window refresh callback function
 //========================================================================
 
-static void GLFWCALL windowRefreshFun( void )
+static void windowRefreshFun( void )
 {
     do_redraw = 1;
 }
@@ -379,7 +379,7 @@ static void GLFWCALL windowRefreshFun( void )
 // Mouse position callback function
 //========================================================================
 
-static void GLFWCALL mousePosFun( int x, int y )
+static void mousePosFun( int x, int y )
 {
     // Depending on which view was selected, rotate around different axes
     switch( active_view )
@@ -414,7 +414,7 @@ static void GLFWCALL mousePosFun( int x, int y )
 // Mouse button callback function
 //========================================================================
 
-static void GLFWCALL mouseButtonFun( int button, int action )
+static void mouseButtonFun( int button, int action )
 {
     // Button clicked?
     if( ( button == GLFW_MOUSE_BUTTON_LEFT ) && action == GLFW_PRESS )

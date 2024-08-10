@@ -40,9 +40,6 @@
 #include <Carbon/Carbon.h>
 #include <OpenGL/OpenGL.h>
 #include <AGL/agl.h>
-#include <sched.h>
-#include <pthread.h>
-#include <sys/sysctl.h>
 
 #include "../../include/GL/glfw.h"
 
@@ -128,6 +125,8 @@ typedef const GLubyte * (APIENTRY *PFNGLGETSTRINGIPROC) (GLenum, GLuint);
 typedef intptr_t GLFWintptr;
 
 
+GLFWGLOBAL CFDictionaryRef _glfwDesktopVideoMode;
+
 //------------------------------------------------------------------------
 // Window structure
 //------------------------------------------------------------------------
@@ -178,8 +177,6 @@ struct _GLFWwin_struct {
     int       samples;
 
     // OpenGL extensions and context attributes
-    int       has_GL_SGIS_generate_mipmap;
-    int       has_GL_ARB_texture_non_power_of_two;
     int       glMajor, glMinor, glRevision;
     int       glForward, glDebug, glProfile;
 
@@ -234,40 +231,6 @@ GLFWGLOBAL struct {
 
 
 //------------------------------------------------------------------------
-// Thread information
-//------------------------------------------------------------------------
-typedef struct _GLFWthread_struct _GLFWthread;
-
-// Thread record (one for each thread)
-struct _GLFWthread_struct {
-
-    // Pointer to previous and next threads in linked list
-    _GLFWthread   *Previous, *Next;
-
-    // GLFW user side thread information
-    GLFWthread    ID;
-    GLFWthreadfun Function;
-
-    // System side thread information
-    pthread_t     PosixID;
-};
-
-// General thread information
-GLFWGLOBAL struct {
-
-    // Critical section lock
-    pthread_mutex_t  CriticalSection;
-
-    // Next thread ID to use (increments for every created thread)
-    GLFWthread       NextID;
-
-    // First thread in linked list (always the main thread)
-    _GLFWthread      First;
-
-} _glfwThrd;
-
-
-//------------------------------------------------------------------------
 // Library global data
 //------------------------------------------------------------------------
 GLFWGLOBAL struct {
@@ -276,9 +239,6 @@ GLFWGLOBAL struct {
 
     // Window opening hints
     _GLFWhints      hints;
-
-    // Initial desktop mode
-    GLFWvidmode     desktopMode;
 
 // ========= PLATFORM SPECIFIC PART ======================================
 
@@ -299,38 +259,9 @@ GLFWGLOBAL struct {
 
 
 //========================================================================
-// Macros for encapsulating critical code sections (i.e. making parts
-// of GLFW thread safe)
-//========================================================================
-
-// Define so we can use the same thread code as X11
-#define _glfw_numprocessors(n) { \
-    int mib[2], ncpu; \
-    size_t len = 1; \
-    mib[0] = CTL_HW; \
-    mib[1] = HW_NCPU; \
-    n      = 1; \
-    if( sysctl( mib, 2, &ncpu, &len, NULL, 0 ) != -1 ) \
-    { \
-        if( len > 0 ) \
-        { \
-            n = ncpu; \
-        } \
-    } \
-}
-
-// Thread list management
-#define ENTER_THREAD_CRITICAL_SECTION \
-pthread_mutex_lock( &_glfwThrd.CriticalSection );
-#define LEAVE_THREAD_CRITICAL_SECTION \
-pthread_mutex_unlock( &_glfwThrd.CriticalSection );
-
-
-//========================================================================
 // Prototypes for platform specific internal functions
 //========================================================================
 
 void  _glfwChangeToResourcesDirectory( void );
-void  _glfwSaveDesktopMode( void );
 
 #endif // _platform_h_

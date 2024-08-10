@@ -336,8 +336,6 @@ struct _GLFWwin_struct {
     int       samples;
 
     // OpenGL extensions and context attributes
-    int       has_GL_SGIS_generate_mipmap;
-    int       has_GL_ARB_texture_non_power_of_two;
     int       glMajor, glMinor, glRevision;
     int       glForward, glDebug, glProfile;
 
@@ -369,8 +367,9 @@ struct _GLFWwin_struct {
     GLboolean                      has_WGL_ARB_create_context_profile;
 
     // Various platform specific internal variables
-    int       mouseLockActive;    // Whether the mouse cursor enable is applied
-                                  // to the actual system cursor
+    int       oldMouseLock;    // Old mouse-lock flag (used for remembering
+                               // mouse-lock state when iconifying)
+    int       oldMouseLockValid;
     int       desiredRefreshRate; // Desired vertical monitor refresh rate
 
 };
@@ -416,9 +415,6 @@ GLFWGLOBAL struct {
     // Window opening hints
     _GLFWhints      hints;
 
-    // Initial desktop mode
-    GLFWvidmode     desktopMode;
-
 // ========= PLATFORM SPECIFIC PART ======================================
 
   HINSTANCE instance;        // Instance of the application
@@ -463,65 +459,6 @@ GLFWGLOBAL struct {
 #endif
 
 } _glfwLibrary;
-
-
-//------------------------------------------------------------------------
-// Thread record (one for each thread)
-//------------------------------------------------------------------------
-typedef struct _GLFWthread_struct _GLFWthread;
-
-struct _GLFWthread_struct {
-
-// ========= PLATFORM INDEPENDENT MANDATORY PART =========================
-
-    // Pointer to previous and next threads in linked list
-    _GLFWthread   *Previous, *Next;
-
-    // GLFW user side thread information
-    GLFWthread    ID;
-    GLFWthreadfun Function;
-
-// ========= PLATFORM SPECIFIC PART ======================================
-
-    // System side thread information
-    HANDLE        Handle;
-    DWORD         WinID;
-
-};
-
-
-//------------------------------------------------------------------------
-// General thread information
-//------------------------------------------------------------------------
-GLFWGLOBAL struct {
-
-// ========= PLATFORM INDEPENDENT MANDATORY PART =========================
-
-    // Next thread ID to use (increments for every created thread)
-    GLFWthread       NextID;
-
-    // First thread in linked list (always the main thread)
-    _GLFWthread      First;
-
-// ========= PLATFORM SPECIFIC PART ======================================
-
-    // Critical section lock
-    CRITICAL_SECTION CriticalSection;
-
-} _glfwThrd;
-
-
-
-//========================================================================
-// Macros for encapsulating critical code sections (i.e. making parts
-// of GLFW thread safe)
-//========================================================================
-
-// Thread list management
-#define ENTER_THREAD_CRITICAL_SECTION \
-        EnterCriticalSection( &_glfwThrd.CriticalSection );
-#define LEAVE_THREAD_CRITICAL_SECTION \
-        LeaveCriticalSection( &_glfwThrd.CriticalSection );
 
 
 //========================================================================

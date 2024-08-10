@@ -48,26 +48,23 @@ static void enableMouseCursor( void )
         return;
     }
 
-    if( _glfwWin.active )
+    // Show mouse cursor
+    _glfwPlatformShowMouseCursor();
+
+    centerPosX = _glfwWin.width / 2;
+    centerPosY = _glfwWin.height / 2;
+
+    if( centerPosX != _glfwInput.MousePosX || centerPosY != _glfwInput.MousePosY )
     {
-        // Show mouse cursor
-        _glfwPlatformShowMouseCursor();
+        _glfwPlatformSetMouseCursorPos( centerPosX, centerPosY );
 
-        centerPosX = _glfwWin.width / 2;
-        centerPosY = _glfwWin.height / 2;
+        _glfwInput.MousePosX = centerPosX;
+        _glfwInput.MousePosY = centerPosY;
 
-        if( centerPosX != _glfwInput.MousePosX || centerPosY != _glfwInput.MousePosY )
+        if( _glfwWin.mousePosCallback )
         {
-            _glfwPlatformSetMouseCursorPos( centerPosX, centerPosY );
-
-            _glfwInput.MousePosX = centerPosX;
-            _glfwInput.MousePosY = centerPosY;
-
-            if( _glfwWin.mousePosCallback )
-            {
-                _glfwWin.mousePosCallback( _glfwInput.MousePosX,
-                                        _glfwInput.MousePosY );
-            }
+            _glfwWin.mousePosCallback( _glfwInput.MousePosX,
+                                       _glfwInput.MousePosY );
         }
     }
 
@@ -87,10 +84,11 @@ static void disableMouseCursor( void )
     }
 
     // Hide mouse cursor
-    if( _glfwWin.active )
-    {
-        _glfwPlatformHideMouseCursor();
-    }
+    _glfwPlatformHideMouseCursor();
+
+    // Move cursor to the middle of the window
+    _glfwPlatformSetMouseCursorPos( _glfwWin.width >> 1,
+                                    _glfwWin.height >> 1 );
 
     // From now on the mouse is locked
     _glfwWin.mouseLock = GL_TRUE;
@@ -239,7 +237,7 @@ static void disableAutoPollEvents( void )
 // Enable certain GLFW/window/system functions.
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwEnable( int token )
+GLFWAPI void glfwEnable( int token )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized )
@@ -277,7 +275,7 @@ GLFWAPI void GLFWAPIENTRY glfwEnable( int token )
 // Disable certain GLFW/window/system functions.
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwDisable( int token )
+GLFWAPI void glfwDisable( int token )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized )

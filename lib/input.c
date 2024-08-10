@@ -35,7 +35,7 @@
 // Return key state
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwGetKey( int key )
+GLFWAPI int glfwGetKey( int key )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -63,7 +63,7 @@ GLFWAPI int GLFWAPIENTRY glfwGetKey( int key )
 // Return mouse button state
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwGetMouseButton( int button )
+GLFWAPI int glfwGetMouseButton( int button )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -91,7 +91,7 @@ GLFWAPI int GLFWAPIENTRY glfwGetMouseButton( int button )
 // Return mouse cursor position
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwGetMousePos( int *xpos, int *ypos )
+GLFWAPI void glfwGetMousePos( int *xpos, int *ypos )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -114,7 +114,7 @@ GLFWAPI void GLFWAPIENTRY glfwGetMousePos( int *xpos, int *ypos )
 // Sets the mouse cursor position
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetMousePos( int xpos, int ypos )
+GLFWAPI void glfwSetMousePos( int xpos, int ypos )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -146,7 +146,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetMousePos( int xpos, int ypos )
 // Return mouse wheel position
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwGetMouseWheel( void )
+GLFWAPI int glfwGetMouseWheel( void )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -162,7 +162,7 @@ GLFWAPI int GLFWAPIENTRY glfwGetMouseWheel( void )
 // Set mouse wheel position
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetMouseWheel( int pos )
+GLFWAPI void glfwSetMouseWheel( int pos )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -178,7 +178,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetMouseWheel( int pos )
 // Set callback function for keyboard input
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetKeyCallback( GLFWkeyfun cbfun )
+GLFWAPI void glfwSetKeyCallback( GLFWkeyfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -194,7 +194,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetKeyCallback( GLFWkeyfun cbfun )
 // Set callback function for character input
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetCharCallback( GLFWcharfun cbfun )
+GLFWAPI void glfwSetCharCallback( GLFWcharfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -210,7 +210,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetCharCallback( GLFWcharfun cbfun )
 // Set callback function for mouse clicks
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetMouseButtonCallback( GLFWmousebuttonfun cbfun )
+GLFWAPI void glfwSetMouseButtonCallback( GLFWmousebuttonfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -226,7 +226,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetMouseButtonCallback( GLFWmousebuttonfun cbfun )
 // Set callback function for mouse moves
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetMousePosCallback( GLFWmouseposfun cbfun )
+GLFWAPI void glfwSetMousePosCallback( GLFWmouseposfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {
@@ -249,7 +249,7 @@ GLFWAPI void GLFWAPIENTRY glfwSetMousePosCallback( GLFWmouseposfun cbfun )
 // Set callback function for mouse wheel
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwSetMouseWheelCallback( GLFWmousewheelfun cbfun )
+GLFWAPI void glfwSetMouseWheelCallback( GLFWmousewheelfun cbfun )
 {
     if( !_glfwInitialized || !_glfwWin.opened )
     {

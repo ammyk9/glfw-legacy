@@ -36,8 +36,6 @@
 #include <stdlib.h>
 
 static GLboolean cursor_enabled = GL_TRUE;
-static int cursor_x = 0;
-static int cursor_y = 0;
 
 static GLboolean open_window(void);
 
@@ -51,14 +49,12 @@ static void toggle_mouse_cursor(void)
     cursor_enabled = !cursor_enabled;
 }
 
-static void GLFWCALL mouse_position_callback(int x, int y)
+static void mouse_position_callback(int x, int y)
 {
-    printf("Mouse moved to: %i %i offset %i %i\n", x, y, x - cursor_x, y - cursor_y);
-    cursor_x = x;
-    cursor_y = y;
+    printf("Mouse moved to: %i %i\n", x, y);
 }
 
-static void GLFWCALL key_callback(int key, int action)
+static void key_callback(int key, int action)
 {
     switch (key)
     {
@@ -83,21 +79,22 @@ static void GLFWCALL key_callback(int key, int action)
     }
 }
 
-static void GLFWCALL window_size_callback(int width, int height)
+static void window_size_callback(int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
 static GLboolean open_window(void)
 {
+    int x, y;
+
     if (!glfwOpenWindow(0, 0, 0, 0, 0, 0, 0, 0, GLFW_WINDOW))
         return GL_FALSE;
 
     glfwSetWindowTitle("Peter Detector");
-    glfwSetWindowPos(150, 150);
 
-    glfwGetMousePos(&cursor_x, &cursor_y);
-    printf("Mouse position: %i %i\n", cursor_x, cursor_y);
+    glfwGetMousePos(&x, &y);
+    printf("Mouse position: %i %i\n", x, y);
 
     glfwDisable(GLFW_AUTO_POLL_EVENTS);
     glfwSetWindowSizeCallback(window_size_callback);
@@ -113,13 +110,15 @@ int main(void)
     if (!glfwInit())
     {
         fprintf(stderr, "Failed to initialize GLFW\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     if (!open_window())
     {
+        glfwTerminate();
+
         fprintf(stderr, "Failed to open GLFW window\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -133,6 +132,6 @@ int main(void)
     }
 
     glfwTerminate();
-    exit(EXIT_SUCCESS);
+    exit(0);
 }
 

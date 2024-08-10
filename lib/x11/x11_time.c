@@ -39,7 +39,7 @@
 
 static uint64_t getRawTime(void)
 {
-#if defined( CLOCK_MONOTONIC )
+#if defined( _POSIX_TIMERS ) && defined( _POSIX_MONOTONIC_CLOCK )
     if( _glfwLibrary.Timer.monotonic )
     {
         struct timespec ts;
@@ -64,7 +64,7 @@ static uint64_t getRawTime(void)
 
 void _glfwInitTimer( void )
 {
-#if defined( CLOCK_MONOTONIC )
+#if defined( _POSIX_TIMERS ) && defined( _POSIX_MONOTONIC_CLOCK )
     struct timespec ts;
 
     if( clock_gettime( CLOCK_MONOTONIC, &ts ) == 0 )
@@ -107,68 +107,4 @@ void _glfwPlatformSetTime( double time )
         (uint64_t) (time / _glfwLibrary.Timer.resolution);
 }
 
-
-//========================================================================
-// Put a thread to sleep for a specified amount of time
-//========================================================================
-
-void _glfwPlatformSleep( double time )
-{
-#ifdef _GLFW_HAS_PTHREAD
-
-    if( time == 0.0 )
-    {
-#ifdef _GLFW_HAS_SCHED_YIELD
-	sched_yield();
-#endif
-	return;
-    }
-
-    struct timeval  currenttime;
-    struct timespec wait;
-    pthread_mutex_t mutex;
-    pthread_cond_t  cond;
-    long dt_sec, dt_usec;
-
-    // Not all pthread implementations have a pthread_sleep() function. We
-    // do it the portable way, using a timed wait for a condition that we
-    // will never signal. NOTE: The unistd functions sleep/usleep suspends
-    // the entire PROCESS, not a signle thread, which is why we can not
-    // use them to implement glfwSleep.
-
-    // Set timeout time, relatvie to current time
-    gettimeofday( &currenttime, NULL );
-    dt_sec  = (long) time;
-    dt_usec = (long) ((time - (double)dt_sec) * 1000000.0);
-    wait.tv_nsec = (currenttime.tv_usec + dt_usec) * 1000L;
-    if( wait.tv_nsec > 1000000000L )
-    {
-        wait.tv_nsec -= 1000000000L;
-        dt_sec++;
-    }
-    wait.tv_sec  = currenttime.tv_sec + dt_sec;
-
-    // Initialize condition and mutex objects
-    pthread_mutex_init( &mutex, NULL );
-    pthread_cond_init( &cond, NULL );
-
-    // Do a timed wait
-    pthread_mutex_lock( &mutex );
-    pthread_cond_timedwait( &cond, &mutex, &wait );
-    pthread_mutex_unlock( &mutex );
-
-    // Destroy condition and mutex objects
-    pthread_mutex_destroy( &mutex );
-    pthread_cond_destroy( &cond );
-
-#else
-
-    // For systems without PTHREAD, use unistd usleep
-    if( time > 0 )
-    {
-        usleep( (unsigned int) (time*1000000) );
-    }
-
-#endif // _GLFW_HAS_PTHREAD
-}
 

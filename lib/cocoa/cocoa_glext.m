@@ -1,10 +1,20 @@
 //========================================================================
 // GLFW - An OpenGL framework
+<<<<<<<< HEAD:lib/carbon/carbon_glext.c
+// Platform:    Carbon/AGL/CGL
+// API Version: 2.7
+// WWW:         http://www.glfw.org/
+//------------------------------------------------------------------------
+// Copyright (c) 2002-2006 Marcus Geelnard
+// Copyright (c) 2003      Keith Bauer
+// Copyright (c) 2003-2010 Camilla Berglund <elmindreda@elmindreda.org>
+========
 // Platform:    Cocoa/NSOpenGL
 // API Version: 2.7
 // WWW:         http://www.glfw.org/
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_glext.m
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -42,7 +52,6 @@ int _glfwPlatformExtensionSupported( const char *extension )
     // There are no AGL, CGL or NSGL extensions.
     return GL_FALSE;
 }
-
 
 //========================================================================
 // Get the function pointer to an OpenGL function

@@ -6,6 +6,6 @@ includedir=@PREFIX@/include
 Name: GLFW
 Description: A portable framework for OpenGL development
 Version: 2.7
-URL: http://www.glfw.org/
-Libs: -L${libdir} -lglfw -lglu32 -lopengl32 -lm -s -mwindows -e _mainCRTStartup
-Cflags: -I${includedir} -mwin32
+URL: http://glfw.sourceforge.net/
+Libs: -L${libdir} -lglfw -framework AGL -framework OpenGL -framework Carbon
+Cflags: -I${includedir}

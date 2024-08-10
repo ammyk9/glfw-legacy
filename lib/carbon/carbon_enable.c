@@ -1,5 +1,6 @@
 //========================================================================
 // GLFW - An OpenGL framework
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
 // Platform:    Carbon/AGL/CGL
 // API Version: 2.7
 // WWW:         http://www.glfw.org/
@@ -7,6 +8,13 @@
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2003      Keith Bauer
 // Copyright (c) 2003-2010 Camilla Berglund <elmindreda@elmindreda.org>
+========
+// Platform:    Cocoa/NSOpenGL
+// API Version: 2.7
+// WWW:         http://www.glfw.org/
+//------------------------------------------------------------------------
+// Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -29,12 +37,19 @@
 //
 //========================================================================
 
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
+========
+#include "internal.h"
+
+#include <sys/time.h>
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 
 //************************************************************************
 //****               Platform implementation functions                ****
 //************************************************************************
 
 //========================================================================
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
 // Enable system keys
 //========================================================================
 
@@ -52,5 +67,22 @@ void _glfwPlatformDisableSystemKeys( void )
 {
     // Nothing to do; event handling code checks the status of
     // _glfwWin.sysKeysDisabled to ensure this behavior.
+========
+// Return timer value in seconds
+//========================================================================
+
+double _glfwPlatformGetTime( void )
+{
+    return [NSDate timeIntervalSinceReferenceDate] - _glfwLibrary.Timer.t0;
+}
+
+//========================================================================
+// Set timer value in seconds
+//========================================================================
+
+void _glfwPlatformSetTime( double time )
+{
+    _glfwLibrary.Timer.t0 = [NSDate timeIntervalSinceReferenceDate] - time;
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 }
 

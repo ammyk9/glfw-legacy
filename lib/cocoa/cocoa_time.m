@@ -1,10 +1,20 @@
 //========================================================================
 // GLFW - An OpenGL framework
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
+// Platform:    Carbon/AGL/CGL
+// API Version: 2.7
+// WWW:         http://www.glfw.org/
+//------------------------------------------------------------------------
+// Copyright (c) 2002-2006 Marcus Geelnard
+// Copyright (c) 2003      Keith Bauer
+// Copyright (c) 2003-2010 Camilla Berglund <elmindreda@elmindreda.org>
+========
 // Platform:    Cocoa/NSOpenGL
 // API Version: 2.7
 // WWW:         http://www.glfw.org/
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -27,50 +37,44 @@
 //
 //========================================================================
 
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
+========
 #include "internal.h"
 
-#include <mach/mach_time.h>
 #include <sys/time.h>
-
-
-//========================================================================
-// Return raw time
-//========================================================================
-
-static uint64_t getRawTime( void )
-{
-    return mach_absolute_time();
-}
-
-
-//========================================================================
-// Initialise timer
-//========================================================================
-
-void _glfwInitTimer( void )
-{
-    mach_timebase_info_data_t info;
-    mach_timebase_info( &info );
-
-    _glfwLibrary.timer.resolution = (double) info.numer / ( info.denom * 1.0e9 );
-    _glfwLibrary.timer.base = getRawTime();
-}
-
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 
 //************************************************************************
 //****               Platform implementation functions                ****
 //************************************************************************
 
 //========================================================================
+<<<<<<<< HEAD:lib/carbon/carbon_enable.c
+// Enable system keys
+//========================================================================
+
+void _glfwPlatformEnableSystemKeys( void )
+{
+    // Nothing to do; event handling code checks the status of
+    // _glfwWin.sysKeysDisabled to ensure this behavior.
+}
+
+//========================================================================
+// Disable system keys
+//========================================================================
+
+void _glfwPlatformDisableSystemKeys( void )
+{
+    // Nothing to do; event handling code checks the status of
+    // _glfwWin.sysKeysDisabled to ensure this behavior.
+========
 // Return timer value in seconds
 //========================================================================
 
 double _glfwPlatformGetTime( void )
 {
-    return (double) ( getRawTime() - _glfwLibrary.timer.base ) *
-        _glfwLibrary.timer.resolution;
+    return [NSDate timeIntervalSinceReferenceDate] - _glfwLibrary.Timer.t0;
 }
-
 
 //========================================================================
 // Set timer value in seconds
@@ -78,58 +82,7 @@ double _glfwPlatformGetTime( void )
 
 void _glfwPlatformSetTime( double time )
 {
-    _glfwLibrary.timer.base = getRawTime() -
-        (uint64_t) ( time / _glfwLibrary.timer.resolution );
-}
-
-
-//========================================================================
-// Put a thread to sleep for a specified amount of time
-//========================================================================
-
-void _glfwPlatformSleep( double time )
-{
-    if( time == 0.0 )
-    {
-	sched_yield();
-	return;
-    }
-
-    struct timeval  currenttime;
-    struct timespec wait;
-    pthread_mutex_t mutex;
-    pthread_cond_t  cond;
-    long dt_sec, dt_usec;
-
-    // Not all pthread implementations have a pthread_sleep() function. We
-    // do it the portable way, using a timed wait for a condition that we
-    // will never signal. NOTE: The unistd functions sleep/usleep suspends
-    // the entire PROCESS, not a signle thread, which is why we can not
-    // use them to implement glfwSleep.
-
-    // Set timeout time, relatvie to current time
-    gettimeofday( &currenttime, NULL );
-    dt_sec  = (long) time;
-    dt_usec = (long) ((time - (double)dt_sec) * 1000000.0);
-    wait.tv_nsec = (currenttime.tv_usec + dt_usec) * 1000L;
-    if( wait.tv_nsec > 1000000000L )
-    {
-        wait.tv_nsec -= 1000000000L;
-        dt_sec ++;
-    }
-    wait.tv_sec  = currenttime.tv_sec + dt_sec;
-
-    // Initialize condition and mutex objects
-    pthread_mutex_init( &mutex, NULL );
-    pthread_cond_init( &cond, NULL );
-
-    // Do a timed wait
-    pthread_mutex_lock( &mutex );
-    pthread_cond_timedwait( &cond, &mutex, &wait );
-    pthread_mutex_unlock( &mutex );
-
-    // Destroy condition and mutex objects
-    pthread_mutex_destroy( &mutex );
-    pthread_cond_destroy( &cond );
+    _glfwLibrary.Timer.t0 = [NSDate timeIntervalSinceReferenceDate] - time;
+>>>>>>>> origin/2.x-lite:lib/cocoa/cocoa_time.m
 }
 

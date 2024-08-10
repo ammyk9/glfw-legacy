@@ -179,10 +179,12 @@ void _glfwRefreshContextParams( void )
 // Check if an OpenGL extension is available at runtime
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwExtensionSupported( const char *extension )
+GLFWAPI int glfwExtensionSupported( const char *extension )
 {
     const GLubyte *extensions;
     GLubyte *where;
+    GLint count;
+    int i;
 
     // Is GLFW initialized?
     if( !_glfwInitialized || !_glfwWin.opened )
@@ -214,9 +216,6 @@ GLFWAPI int GLFWAPIENTRY glfwExtensionSupported( const char *extension )
     {
         // Check if extension is in the modern OpenGL extensions string list
 
-        GLint count;
-        int i;
-
         glGetIntegerv( GL_NUM_EXTENSIONS, &count );
 
         for( i = 0;  i < count;  i++ )
@@ -244,7 +243,7 @@ GLFWAPI int GLFWAPIENTRY glfwExtensionSupported( const char *extension )
 // used to get access to extended OpenGL functions.
 //========================================================================
 
-GLFWAPI void * GLFWAPIENTRY glfwGetProcAddress( const char *procname )
+GLFWAPI void * glfwGetProcAddress( const char *procname )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized || !_glfwWin.opened )
@@ -260,7 +259,7 @@ GLFWAPI void * GLFWAPIENTRY glfwGetProcAddress( const char *procname )
 // Returns the OpenGL version
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwGetGLVersion( int *major, int *minor, int *rev )
+GLFWAPI void glfwGetGLVersion( int *major, int *minor, int *rev )
 {
     // Is GLFW initialized?
     if( !_glfwInitialized || !_glfwWin.opened )

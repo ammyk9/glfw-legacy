@@ -1,5 +1,12 @@
 //========================================================================
 // GLFW - An OpenGL framework
+<<<<<<<< HEAD:lib/cocoa/cocoa_glext.m
+// Platform:    Cocoa/NSOpenGL
+// API Version: 2.7
+// WWW:         http://www.glfw.org/
+//------------------------------------------------------------------------
+// Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
+========
 // Platform:    Carbon/AGL/CGL
 // API Version: 2.7
 // WWW:         http://www.glfw.org/
@@ -7,6 +14,7 @@
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2003      Keith Bauer
 // Copyright (c) 2003-2010 Camilla Berglund <elmindreda@elmindreda.org>
+>>>>>>>> origin/2.x-lite:lib/carbon/carbon_time.c
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -36,24 +44,51 @@
 //************************************************************************
 
 //========================================================================
+<<<<<<<< HEAD:lib/cocoa/cocoa_glext.m
+// Check if an OpenGL extension is available at runtime
+========
 // Return timer value in seconds
+>>>>>>>> origin/2.x-lite:lib/carbon/carbon_time.c
 //========================================================================
 
 double _glfwPlatformGetTime( void )
 {
+<<<<<<<< HEAD:lib/cocoa/cocoa_glext.m
+    // There are no AGL, CGL or NSGL extensions.
+    return GL_FALSE;
+========
     struct timeval  tv;
 
     gettimeofday( &tv, NULL );
     return tv.tv_sec + (double) tv.tv_usec / 1000000.0 - _glfwLibrary.Timer.t0;
+>>>>>>>> origin/2.x-lite:lib/carbon/carbon_time.c
 }
 
 
 //========================================================================
+<<<<<<<< HEAD:lib/cocoa/cocoa_glext.m
+// Get the function pointer to an OpenGL function
+========
 // Set timer value in seconds
+>>>>>>>> origin/2.x-lite:lib/carbon/carbon_time.c
 //========================================================================
 
 void _glfwPlatformSetTime( double time )
 {
+<<<<<<<< HEAD:lib/cocoa/cocoa_glext.m
+    CFStringRef symbolName = CFStringCreateWithCString( kCFAllocatorDefault,
+                                                        procname,
+                                                        kCFStringEncodingASCII );
+
+    void *symbol = CFBundleGetFunctionPointerForName( _glfwLibrary.OpenGLFramework,
+                                                      symbolName );
+
+    CFRelease( symbolName );
+
+    return symbol;
+}
+
+========
     struct timeval  tv;
 
     gettimeofday( &tv, NULL );
@@ -61,53 +96,4 @@ void _glfwPlatformSetTime( double time )
 }
 
 
-//========================================================================
-// Put a thread to sleep for a specified amount of time
-//========================================================================
-
-void _glfwPlatformSleep( double time )
-{
-    if( time == 0.0 )
-    {
-	sched_yield();
-	return;
-    }
-
-    struct timeval  currenttime;
-    struct timespec wait;
-    pthread_mutex_t mutex;
-    pthread_cond_t  cond;
-    long dt_sec, dt_usec;
-
-    // Not all pthread implementations have a pthread_sleep() function. We
-    // do it the portable way, using a timed wait for a condition that we
-    // will never signal. NOTE: The unistd functions sleep/usleep suspends
-    // the entire PROCESS, not a signle thread, which is why we can not
-    // use them to implement glfwSleep.
-
-    // Set timeout time, relatvie to current time
-    gettimeofday( &currenttime, NULL );
-    dt_sec  = (long) time;
-    dt_usec = (long) ((time - (double)dt_sec) * 1000000.0);
-    wait.tv_nsec = (currenttime.tv_usec + dt_usec) * 1000L;
-    if( wait.tv_nsec > 1000000000L )
-    {
-        wait.tv_nsec -= 1000000000L;
-        dt_sec ++;
-    }
-    wait.tv_sec  = currenttime.tv_sec + dt_sec;
-
-    // Initialize condition and mutex objects
-    pthread_mutex_init( &mutex, NULL );
-    pthread_cond_init( &cond, NULL );
-
-    // Do a timed wait
-    pthread_mutex_lock( &mutex );
-    pthread_cond_timedwait( &cond, &mutex, &wait );
-    pthread_mutex_unlock( &mutex );
-
-    // Destroy condition and mutex objects
-    pthread_mutex_destroy( &mutex );
-    pthread_cond_destroy( &cond );
-}
-
+>>>>>>>> origin/2.x-lite:lib/carbon/carbon_time.c

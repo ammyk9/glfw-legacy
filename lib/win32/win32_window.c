@@ -42,20 +42,6 @@
 
 
 //========================================================================
-// Updates the cursor clip rect
-//========================================================================
-
-static void updateClipRect( void )
-{
-    RECT clipRect;
-    GetClientRect( _glfwWin.window, &clipRect );
-    ClientToScreen( _glfwWin.window, (POINT*) &clipRect.left );
-    ClientToScreen( _glfwWin.window, (POINT*) &clipRect.right );
-    ClipCursor( &clipRect );
-}
-
-
-//========================================================================
 // Enable/disable minimize/restore animations
 //========================================================================
 
@@ -168,7 +154,7 @@ static int getPixelFormatAttrib(int pixelFormat, int attrib)
 
 static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 {
-    _GLFWfbconfig *fbconfigs;
+    _GLFWfbconfig *result;
     PIXELFORMATDESCRIPTOR pfd;
     int i, count;
 
@@ -189,8 +175,8 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
         return NULL;
     }
 
-    fbconfigs = (_GLFWfbconfig*) malloc( sizeof( _GLFWfbconfig ) * count );
-    if( !fbconfigs )
+    result = (_GLFWfbconfig*) malloc( sizeof( _GLFWfbconfig ) * count );
+    if( !result )
     {
         fprintf(stderr, "Out of memory");
         return NULL;
@@ -198,8 +184,6 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 
     for( i = 1;  i <= count;  i++ )
     {
-        _GLFWfbconfig *fbconfig = fbconfigs + *found;
-
         if( _glfwWin.has_WGL_ARB_pixel_format )
         {
             // Get pixel format attributes through WGL_ARB_pixel_format
@@ -225,29 +209,29 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
                 continue;
             }
 
-            fbconfig->redBits = getPixelFormatAttrib( i, WGL_RED_BITS_ARB );
-            fbconfig->greenBits = getPixelFormatAttrib( i, WGL_GREEN_BITS_ARB );
-            fbconfig->blueBits = getPixelFormatAttrib( i, WGL_BLUE_BITS_ARB );
-            fbconfig->alphaBits = getPixelFormatAttrib( i, WGL_ALPHA_BITS_ARB );
+            result[*found].redBits = getPixelFormatAttrib( i, WGL_RED_BITS_ARB );
+            result[*found].greenBits = getPixelFormatAttrib( i, WGL_GREEN_BITS_ARB );
+            result[*found].blueBits = getPixelFormatAttrib( i, WGL_BLUE_BITS_ARB );
+            result[*found].alphaBits = getPixelFormatAttrib( i, WGL_ALPHA_BITS_ARB );
 
-            fbconfig->depthBits = getPixelFormatAttrib( i, WGL_DEPTH_BITS_ARB );
-            fbconfig->stencilBits = getPixelFormatAttrib( i, WGL_STENCIL_BITS_ARB );
+            result[*found].depthBits = getPixelFormatAttrib( i, WGL_DEPTH_BITS_ARB );
+            result[*found].stencilBits = getPixelFormatAttrib( i, WGL_STENCIL_BITS_ARB );
 
-            fbconfig->accumRedBits = getPixelFormatAttrib( i, WGL_ACCUM_RED_BITS_ARB );
-            fbconfig->accumGreenBits = getPixelFormatAttrib( i, WGL_ACCUM_GREEN_BITS_ARB );
-            fbconfig->accumBlueBits = getPixelFormatAttrib( i, WGL_ACCUM_BLUE_BITS_ARB );
-            fbconfig->accumAlphaBits = getPixelFormatAttrib( i, WGL_ACCUM_ALPHA_BITS_ARB );
+            result[*found].accumRedBits = getPixelFormatAttrib( i, WGL_ACCUM_RED_BITS_ARB );
+            result[*found].accumGreenBits = getPixelFormatAttrib( i, WGL_ACCUM_GREEN_BITS_ARB );
+            result[*found].accumBlueBits = getPixelFormatAttrib( i, WGL_ACCUM_BLUE_BITS_ARB );
+            result[*found].accumAlphaBits = getPixelFormatAttrib( i, WGL_ACCUM_ALPHA_BITS_ARB );
 
-            fbconfig->auxBuffers = getPixelFormatAttrib( i, WGL_AUX_BUFFERS_ARB );
-            fbconfig->stereo = getPixelFormatAttrib( i, WGL_STEREO_ARB );
+            result[*found].auxBuffers = getPixelFormatAttrib( i, WGL_AUX_BUFFERS_ARB );
+            result[*found].stereo = getPixelFormatAttrib( i, WGL_STEREO_ARB );
 
             if( _glfwWin.has_WGL_ARB_multisample )
             {
-                fbconfig->samples = getPixelFormatAttrib( i, WGL_SAMPLES_ARB );
+                result[*found].samples = getPixelFormatAttrib( i, WGL_SAMPLES_ARB );
             }
             else
             {
-                fbconfig->samples = 0;
+                result[*found].samples = 0;
             }
         }
         else
@@ -270,8 +254,6 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
             if( !( pfd.dwFlags & PFD_GENERIC_ACCELERATED ) &&
                 ( pfd.dwFlags & PFD_GENERIC_FORMAT ) )
             {
-                // If this is true, this pixel format is only supported by the
-                // generic software implementation
                 continue;
             }
 
@@ -281,38 +263,32 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
                 continue;
             }
 
-            fbconfig->redBits = pfd.cRedBits;
-            fbconfig->greenBits = pfd.cGreenBits;
-            fbconfig->blueBits = pfd.cBlueBits;
-            fbconfig->alphaBits = pfd.cAlphaBits;
+            result[*found].redBits = pfd.cRedBits;
+            result[*found].greenBits = pfd.cGreenBits;
+            result[*found].blueBits = pfd.cBlueBits;
+            result[*found].alphaBits = pfd.cAlphaBits;
 
-            fbconfig->depthBits = pfd.cDepthBits;
-            fbconfig->stencilBits = pfd.cStencilBits;
+            result[*found].depthBits = pfd.cDepthBits;
+            result[*found].stencilBits = pfd.cStencilBits;
 
-            fbconfig->accumRedBits = pfd.cAccumRedBits;
-            fbconfig->accumGreenBits = pfd.cAccumGreenBits;
-            fbconfig->accumBlueBits = pfd.cAccumBlueBits;
-            fbconfig->accumAlphaBits = pfd.cAccumAlphaBits;
+            result[*found].accumRedBits = pfd.cAccumRedBits;
+            result[*found].accumGreenBits = pfd.cAccumGreenBits;
+            result[*found].accumBlueBits = pfd.cAccumBlueBits;
+            result[*found].accumAlphaBits = pfd.cAccumAlphaBits;
 
-            fbconfig->auxBuffers = pfd.cAuxBuffers;
-            fbconfig->stereo = ( pfd.dwFlags & PFD_STEREO ) ? GL_TRUE : GL_FALSE;
+            result[*found].auxBuffers = pfd.cAuxBuffers;
+            result[*found].stereo = ( pfd.dwFlags & PFD_STEREO ) ? GL_TRUE : GL_FALSE;
 
             // PFD pixel formats do not support FSAA
-            fbconfig->samples = 0;
+            result[*found].samples = 0;
         }
 
-        fbconfig->platformID = i;
+        result[*found].platformID = i;
 
         (*found)++;
     }
 
-    if( *found == 0 )
-    {
-        free( fbconfigs );
-        return NULL;
-    }
-
-    return fbconfigs;
+    return result;
 }
 
 
@@ -394,11 +370,6 @@ static GLboolean createContext( HDC dc, const _GLFWwndconfig* wndconfig, int pix
         {
             return GL_FALSE;
         }
-
-        // Copy the debug context hint as there's no way of verifying it
-        // This is the only code path capable of creating a debug context,
-        // so leave it as false (from the earlier memset) otherwise
-        _glfwWin.glDebug = wndconfig->glDebug;
     }
     else
     {
@@ -688,26 +659,19 @@ static void translateChar( DWORD wParam, DWORD lParam, int action )
 static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                                     WPARAM wParam, LPARAM lParam )
 {
-    int wheelDelta;
+    int wheelDelta, iconified;
 
     switch( uMsg )
     {
         // Window activate message? (iconification?)
         case WM_ACTIVATE:
         {
-            int activated = (LOWORD(wParam) != WA_INACTIVE) ? GL_TRUE : GL_FALSE;
-            int iconified = HIWORD(wParam) ? GL_TRUE : GL_FALSE;
+            _glfwWin.active = LOWORD(wParam) != WA_INACTIVE ? GL_TRUE : GL_FALSE;
 
-            if( activated && iconified )
-            {
-                // This is a workaround for window iconification using the
-                // taskbar leading to windows being told they're focused and
-                // iconified and then never told they're defocused
-                activated = GL_FALSE;
-            }
+            iconified = HIWORD(wParam) ? GL_TRUE : GL_FALSE;
 
             // Were we deactivated/iconified?
-            if( !activated && _glfwWin.active )
+            if( (!_glfwWin.active || iconified) && !_glfwWin.iconified )
             {
                 _glfwInputDeactivation();
 
@@ -727,12 +691,14 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 }
 
                 // Unlock mouse if locked
-                if( _glfwWin.mouseLock )
+                if( !_glfwWin.oldMouseLockValid )
                 {
-                    _glfwPlatformShowMouseCursor();
+                    _glfwWin.oldMouseLock = _glfwWin.mouseLock;
+                    _glfwWin.oldMouseLockValid = GL_TRUE;
+                    glfwEnable( GLFW_MOUSE_CURSOR );
                 }
             }
-            else if( activated && !_glfwWin.active )
+            else if( _glfwWin.active || !iconified )
             {
                 // If we are in fullscreen mode we need to maximize
                 if( _glfwWin.opened && _glfwWin.fullscreen && _glfwWin.iconified )
@@ -755,13 +721,13 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 }
 
                 // Lock mouse, if necessary
-                if( _glfwWin.mouseLock )
+                if( _glfwWin.oldMouseLockValid && _glfwWin.oldMouseLock )
                 {
-                    _glfwPlatformHideMouseCursor();
+                    glfwDisable( GLFW_MOUSE_CURSOR );
                 }
+                _glfwWin.oldMouseLockValid = GL_FALSE;
             }
 
-            _glfwWin.active = activated;
             _glfwWin.iconified = iconified;
             return 0;
         }
@@ -809,7 +775,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             {
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_PRESS );
             }
-            break;
+            return 0;
           }
 
         case WM_KEYUP:
@@ -831,7 +797,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_RELEASE );
             }
 
-            break;
+            return 0;
         }
 
         case WM_LBUTTONDOWN:
@@ -899,15 +865,8 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             if( NewMouseX != _glfwInput.OldMouseX ||
                 NewMouseY != _glfwInput.OldMouseY )
             {
-                _glfwInput.MouseMoved = GL_TRUE;
-
                 if( _glfwWin.mouseLock )
                 {
-                    if( !_glfwWin.active )
-                    {
-                        return 0;
-                    }
-
                     _glfwInput.MousePosX += NewMouseX -
                                             _glfwInput.OldMouseX;
                     _glfwInput.MousePosY += NewMouseY -
@@ -920,6 +879,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 }
                 _glfwInput.OldMouseX = NewMouseX;
                 _glfwInput.OldMouseY = NewMouseY;
+                _glfwInput.MouseMoved = GL_TRUE;
 
                 if( _glfwWin.mousePosCallback )
                 {
@@ -954,7 +914,11 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             // If the mouse is locked, update the clipping rect
             if( _glfwWin.mouseLock )
             {
-                updateClipRect();
+                RECT ClipWindowRect;
+                if( GetWindowRect( _glfwWin.window, &ClipWindowRect ) )
+                {
+                    ClipCursor( &ClipWindowRect );
+                }
             }
 
             if( _glfwWin.windowSizeCallback )
@@ -969,7 +933,11 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             // If the mouse is locked, update the clipping rect
             if( _glfwWin.mouseLock )
             {
-                updateClipRect();
+                RECT ClipWindowRect;
+                if( GetWindowRect( _glfwWin.window, &ClipWindowRect ) )
+                {
+                    ClipCursor( &ClipWindowRect );
+                }
             }
             return 0;
         }
@@ -1023,20 +991,23 @@ static void getFullWindowSize( int clientWidth, int clientHeight,
 
 //========================================================================
 // Initialize WGL-specific extensions
+// This function is called once before initial context creation, i.e. before
+// any WGL extensions could be present.  This is done in order to have both
+// extension variable clearing and loading in the same place, hopefully
+// decreasing the possibility of forgetting to add one without the other.
 //========================================================================
 
 static void initWGLExtensions( void )
 {
-    // This needs to include every function pointer loaded below, because
-    // context re-creation means we cannot assume the struct has been cleared
+    // This needs to include every function pointer loaded below
     _glfwWin.SwapIntervalEXT = NULL;
     _glfwWin.GetPixelFormatAttribivARB = NULL;
     _glfwWin.GetExtensionsStringARB = NULL;
     _glfwWin.GetExtensionsStringEXT = NULL;
     _glfwWin.CreateContextAttribsARB = NULL;
 
-    // This needs to include every extension boolean used below, because context
-    // re-creation means we cannot assume the struct has been cleared
+    // This needs to include every extension used below except for
+    // WGL_ARB_extensions_string and WGL_EXT_extensions_string
     _glfwWin.has_WGL_EXT_swap_control = GL_FALSE;
     _glfwWin.has_WGL_ARB_pixel_format = GL_FALSE;
     _glfwWin.has_WGL_ARB_multisample = GL_FALSE;
@@ -1098,13 +1069,16 @@ static void initWGLExtensions( void )
 static ATOM registerWindowClass( void )
 {
     WNDCLASS wc;
-    ZeroMemory( &wc, sizeof( wc ) );
 
     // Set window class parameters
     wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Redraw on...
-    wc.lpfnWndProc   = (WNDPROC) windowProc;          // Message handler
+    wc.lpfnWndProc   = (WNDPROC)windowProc;           // Message handler
+    wc.cbClsExtra    = 0;                             // No extra class data
+    wc.cbWndExtra    = 0;                             // No extra window data
     wc.hInstance     = _glfwLibrary.instance;         // Set instance
     wc.hCursor       = LoadCursor( NULL, IDC_ARROW ); // Load arrow pointer
+    wc.hbrBackground = NULL;                          // No background
+    wc.lpszMenuName  = NULL;                          // No menu
     wc.lpszClassName = _GLFW_WNDCLASSNAME;            // Set class name
 
     // Load user-provided icon if available
@@ -1172,7 +1146,7 @@ static int createWindow( const _GLFWwndconfig *wndconfig,
     _glfwWin.window = NULL;
 
     // Set common window styles
-    dwStyle   = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+    dwStyle   = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
     dwExStyle = WS_EX_APPWINDOW;
 
     // Set window style, depending on fullscreen mode
@@ -1328,8 +1302,11 @@ int _glfwPlatformOpenWindow( int width, int height,
 {
     GLboolean recreateContext = GL_FALSE;
 
+    // Clear platform specific GLFW window state
+    _glfwWin.classAtom         = 0;
+    _glfwWin.oldMouseLockValid = GL_FALSE;
+
     _glfwWin.desiredRefreshRate = wndconfig->refreshRate;
-    _glfwWin.windowNoResize     = wndconfig->windowNoResize;
 
     _glfwWin.classAtom = registerWindowClass();
     if( !_glfwWin.classAtom )
@@ -1344,6 +1321,8 @@ int _glfwPlatformOpenWindow( int width, int height,
                            fbconfig->redBits, fbconfig->greenBits, fbconfig->blueBits,
                            wndconfig->refreshRate );
     }
+
+    initWGLExtensions();
 
     if( !createWindow( wndconfig, fbconfig ) )
     {
@@ -1361,17 +1340,6 @@ int _glfwPlatformOpenWindow( int width, int height,
         if( _glfwWin.has_WGL_ARB_multisample && _glfwWin.has_WGL_ARB_pixel_format )
         {
             // We appear to have both the FSAA extension and the means to ask for it
-            recreateContext = GL_TRUE;
-        }
-    }
-
-    if( wndconfig->glDebug )
-    {
-        // Debug contexts are not a hard constraint, so we don't fail here if
-        // the extension isn't available
-
-        if( _glfwWin.has_WGL_ARB_create_context )
-        {
             recreateContext = GL_TRUE;
         }
     }
@@ -1448,7 +1416,6 @@ int _glfwPlatformOpenWindow( int width, int height,
                       SWP_NOMOVE | SWP_NOSIZE );
     }
 
-    ShowWindow( _glfwWin.window, SW_SHOWNORMAL );
     setForegroundWindow( _glfwWin.window );
     SetFocus( _glfwWin.window );
 
@@ -1592,6 +1559,14 @@ void _glfwPlatformIconifyWindow( void )
         // Change display settings to the desktop resolution
         ChangeDisplaySettings( NULL, CDS_FULLSCREEN );
     }
+
+    // Unlock mouse
+    if( !_glfwWin.oldMouseLockValid )
+    {
+        _glfwWin.oldMouseLock = _glfwWin.mouseLock;
+        _glfwWin.oldMouseLockValid = GL_TRUE;
+        glfwEnable( GLFW_MOUSE_CURSOR );
+    }
 }
 
 
@@ -1618,6 +1593,13 @@ void _glfwPlatformRestoreWindow( void )
 
     // Window is no longer iconified
     _glfwWin.iconified = GL_FALSE;
+
+    // Lock mouse, if necessary
+    if( _glfwWin.oldMouseLockValid && _glfwWin.oldMouseLock )
+    {
+        glfwDisable( GLFW_MOUSE_CURSOR );
+    }
+    _glfwWin.oldMouseLockValid = GL_FALSE;
 }
 
 
@@ -1754,6 +1736,16 @@ void _glfwPlatformPollEvents( void )
     // Flag: mouse was not moved (will be changed by _glfwGetNextEvent if
     // there was a mouse move event)
     _glfwInput.MouseMoved = GL_FALSE;
+    if( _glfwWin.mouseLock )
+    {
+        _glfwInput.OldMouseX = _glfwWin.width/2;
+        _glfwInput.OldMouseY = _glfwWin.height/2;
+    }
+    else
+    {
+        _glfwInput.OldMouseX = _glfwInput.MousePosX;
+        _glfwInput.OldMouseY = _glfwInput.MousePosY;
+    }
 
     // Check for new window messages
     while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
@@ -1797,7 +1789,7 @@ void _glfwPlatformPollEvents( void )
     }
 
     // Did we have mouse movement in locked cursor mode?
-    if( _glfwInput.MouseMoved && _glfwWin.active && _glfwWin.mouseLock )
+    if( _glfwInput.MouseMoved && _glfwWin.mouseLock )
     {
         _glfwPlatformSetMouseCursorPos( _glfwWin.width / 2,
                                         _glfwWin.height / 2 );
@@ -1834,23 +1826,18 @@ void _glfwPlatformWaitEvents( void )
 
 void _glfwPlatformHideMouseCursor( void )
 {
-    if( _glfwWin.mouseLockActive )
-    {
-        return;
-    }
-
-    // Move cursor to the middle of the window
-    _glfwPlatformSetMouseCursorPos( _glfwWin.width / 2, _glfwWin.height / 2 );
+    RECT ClipWindowRect;
 
     ShowCursor( FALSE );
 
     // Clip cursor to the window
-    updateClipRect();
+    if( GetWindowRect( _glfwWin.window, &ClipWindowRect ) )
+    {
+        ClipCursor( &ClipWindowRect );
+    }
 
     // Capture cursor to user window
     SetCapture( _glfwWin.window );
-
-    _glfwWin.mouseLockActive = GL_TRUE;
 }
 
 
@@ -1860,11 +1847,6 @@ void _glfwPlatformHideMouseCursor( void )
 
 void _glfwPlatformShowMouseCursor( void )
 {
-    if( !_glfwWin.mouseLockActive )
-    {
-        return;
-    }
-
     // Un-capture cursor
     ReleaseCapture();
 
@@ -1872,8 +1854,6 @@ void _glfwPlatformShowMouseCursor( void )
     ClipCursor( NULL );
 
     ShowCursor( TRUE );
-
-    _glfwWin.mouseLockActive = GL_FALSE;
 }
 
 
@@ -1889,9 +1869,6 @@ void _glfwPlatformSetMouseCursorPos( int x, int y )
     pos.x = x;
     pos.y = y;
     ClientToScreen( _glfwWin.window, &pos );
-
-    _glfwInput.OldMouseX = x;
-    _glfwInput.OldMouseY = y;
 
     SetCursorPos( pos.x, pos.y );
 }
